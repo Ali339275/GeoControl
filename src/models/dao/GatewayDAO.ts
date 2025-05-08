@@ -25,3 +25,11 @@ export class GatewayDAO{
     network: NetworkDAO;
 
 }
+
+export class Gateway {
+    macAddress: string;
+    name: string;
+    description: string;
+    sensors?: any[];
+  }
+  

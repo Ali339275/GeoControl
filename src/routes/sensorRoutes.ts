@@ -1,5 +1,6 @@
 import AppError from "@models/errors/AppError";
 import { Router } from "express";
+import { SensorController } from "@controllers/SensorController";
 
 const router = Router({ mergeParams: true });
 
