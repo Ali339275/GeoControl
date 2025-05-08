@@ -6,6 +6,7 @@ const router = Router({ mergeParams: true });
 // Get all gateways (Any authenticated user)
 router.get("", (req, res, next) => {
   throw new AppError("Method not implemented", 500);
+
 });
 
 // Create a new gateway (Admin & Operator)

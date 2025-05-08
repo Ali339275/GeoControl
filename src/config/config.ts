@@ -15,7 +15,7 @@ const URL_SENSORS = "/:gatewayMac/sensors";
 export const TOKEN_LIFESPAN = "24h";
 export const SECRET_KEY = "b}2ZzqQ!eQ!t7rFeT[GHs6FZ+*L]2VqR{vnLn>4-V3[5W-V{f^";
 export const CONFIG = {
-  APP_PORT: process.env.PORT || 5000,
+  APP_PORT: process.env.PORT || 3000,
 
   DB_TYPE: process.env.DB_TYPE || "sqlite",
   DB_HOST: process.env.DB_HOST || undefined,
