@@ -1,4 +1,8 @@
 import AppError from "@models/errors/AppError";
+import { ConflictError } from "@models/errors/ConflictError";
+import { NotFoundError } from "@models/errors/NotFoundError";
+import { InsufficientRightsError } from "@models/errors/InsufficientRightsError";
+import { BadRequestError } from "@models/errors/BadRequestError";
 import { Router } from "express";
 import { authenticateUser } from "@middlewares/authMiddleware";
 import { UserType } from "@models/UserType";
@@ -17,6 +21,16 @@ const router = Router();
 // Get all networks (Any authenticated user)
 router.get("", authenticateUser(), async (req, res, next) => {
   try {
+    if(!req.body.name){
+      throw new BadRequestError(" /body/name must have required property name")
+    }
+    if(!req.body.code){
+      throw new BadRequestError(" /body/code must have required property code")
+    }
+    if(!req.body.description){
+      throw new BadRequestError(" /body/description must have required property description")
+    }
+
     res.status(200).json(await getAllNetworks());
   } catch (error) {
     next(error);
@@ -47,6 +61,17 @@ router.get("/:networkCode", authenticateUser(), async (req, res, next) => {
 // Update a network (Admin & Operator)
 router.patch("/:networkCode", authenticateUser([UserType.Admin, UserType.Operator]), async(req, res, next) => {
   try {
+
+    if(!req.body.name){
+      throw new BadRequestError("/body/name must have required property name")
+    }
+    if(!req.body.code){
+      throw new BadRequestError("/body/code must have required property code")
+    }
+    if(!req.body.description){
+      throw new BadRequestError("/body/description must have required property description")
+    }
+
     const code = req.params.networkCode;
     const networkDto = NetworkFromJSON(req.body);
     await updateNetwork(code, networkDto);
@@ -59,7 +84,7 @@ router.patch("/:networkCode", authenticateUser([UserType.Admin, UserType.Operato
 // Delete a network (Admin & Operator)
 router.delete("/:networkCode", authenticateUser([UserType.Admin, UserType.Operator]), async(req, res, next) => {
   try{
-    await deleteNetwork(req.body.networkCode)
+    await deleteNetwork(req.params.networkCode)
     res.status(204).send();
   }
   catch (error){
