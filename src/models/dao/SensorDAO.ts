@@ -1,27 +1,25 @@
-import {
-  Entity,
-  PrimaryColumn,
-  Column,
-  ManyToOne,
-  JoinColumn
-} from 'typeorm';
-import { GatewayDAO } from './GatewayDAO';
+import { Entity, PrimaryColumn, Column } from 'typeorm';
 
 @Entity('sensor')
 export class SensorDAO {
   @PrimaryColumn()
   macAddress: string;
 
-  @Column({ length: 100 })
+  @Column({ nullable: false})
   name: string;
 
-  @Column({ length: 50 })
+  @Column({ nullable: false }) 
+  description: string; 
+
+  @Column({ nullable: false }) 
+  variable: string;
+
+  @Column({ nullable: false }) 
+  unit: string;
+
+  @Column({ nullable: true }) 
   type: string;
 
-  @ManyToOne(() => GatewayDAO, (gateway) => gateway.sensors, { nullable: false, onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'gatewayId' })
-  gateway: GatewayDAO;
-
   @Column()
-  gatewayId: string;
+  gatewayId: string; // stores gateway's macAddress
 }

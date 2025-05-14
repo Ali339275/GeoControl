@@ -5,9 +5,9 @@ import {
   createSensor,
   updateSensor,
   deleteSensor,
-} from "@controllers/SensorController";
+} from '@controllers/SensorController';
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 router.get('/', getAllSensors);
 router.get('/:macAddress', getSensor);

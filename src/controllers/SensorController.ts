@@ -1,3 +1,4 @@
+// src/controllers/SensorController.ts
 import { Request, Response } from 'express';
 import {
   getAllSensorsService,
@@ -5,7 +6,7 @@ import {
   createSensorService,
   updateSensorService,
   deleteSensorService,
-} from "@services/SensorService"
+} from '@services/SensorService';
 
 export const getAllSensors = async (req: Request, res: Response) => {
   try {
@@ -27,9 +28,18 @@ export const getSensor = async (req: Request, res: Response) => {
 
 export const createSensor = async (req: Request, res: Response) => {
   try {
-    const created = await createSensorService(req.body);
+    const { gatewayMac } = req.params;
+    const payload = {
+      ...req.body,
+      gatewayMac
+    };
+
+    console.log("Create Sensor - Payload:", payload); // ✅ چک کردن داده ورودی
+
+    const created = await createSensorService(payload);
     res.status(201).json(created);
   } catch (err) {
+    console.error("CREATE SENSOR ERROR:", err); // ✅ لاگ کامل خطا
     res.status(400).json({ error: 'Error creating sensor' });
   }
 };

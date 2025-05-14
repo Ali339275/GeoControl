@@ -15,8 +15,14 @@ export async function getSensorService(macAddress: string): Promise<SensorDAO> {
   return sensor;
 }
 
-export async function createSensorService(sensorData: SensorDAO): Promise<SensorDAO> {
-  return await sensorRepo.create(sensorData);
+export async function createSensorService(sensorData: Omit<SensorDAO, 'gatewayId'> & { gatewayMac: string }): Promise<SensorDAO> {
+  const sensor: SensorDAO = {
+    ...sensorData,
+    gatewayId: sensorData.gatewayMac 
+  };
+  delete (sensor as any).gatewayMac;
+
+  return await sensorRepo.create(sensor);
 }
 
 export async function updateSensorService(macAddress: string, updateData: Partial<SensorDAO>): Promise<SensorDAO> {
@@ -32,4 +38,4 @@ export async function deleteSensorService(macAddress: string): Promise<void> {
   if (!success) {
     throw new Error('Sensor not found');
   }
-} 
+}
