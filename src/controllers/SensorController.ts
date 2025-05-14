@@ -3,7 +3,7 @@ import { SensorService } from "@services/SensorService";
 
 export class SensorController {
   static async getAll(req: Request, res: Response) {
-    const gatewayMac = req.params.gatewayMac;
+    const gatewayMac = req.query.gatewayMac as string;
     const sensors = await SensorService.getAll(gatewayMac);
     res.json(sensors);
   }
@@ -15,10 +15,10 @@ export class SensorController {
   }
 
   static async create(req: Request, res: Response) {
-    const gatewayMac = req.params.gatewayMac;
+    const gatewayMac = req.query.gatewayMac as string;
     const data = {
       ...req.body,
-      gatewayMacAddress: gatewayMac
+      gatewayMacAddress: gatewayMac,
     };
     const sensor = await SensorService.create(data);
     res.status(201).json(sensor);
@@ -29,7 +29,7 @@ export class SensorController {
     res.status(204).send();
   }
 
-  static async delete(req: Request, res: Response) {
+  static async remove(req: Request, res: Response) {
     await SensorService.delete(req.params.sensorMac);
     res.status(204).send();
   }
