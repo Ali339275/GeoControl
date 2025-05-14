@@ -1,5 +1,6 @@
 import { Entity, PrimaryColumn, Column, ManyToOne, OneToMany } from "typeorm";
 import { NetworkDAO } from "@models/dao/NetworkDAO";
+import { SensorDAO } from "./SensorDAO";
 
 @Entity("gatways")
 export class GatewayDAO{
@@ -23,6 +24,9 @@ export class GatewayDAO{
         nullable: false,
     })
     network: NetworkDAO;
+
+    @OneToMany(() => SensorDAO, (sensor) => sensor.gateway)
+    sensors: SensorDAO[];
 
 }
 

@@ -1,36 +1,53 @@
-import { Request, Response } from "express";
-import { SensorService } from "@services/SensorService";
+import { Request, Response } from 'express';
+import {
+  getAllSensorsService,
+  getSensorService,
+  createSensorService,
+  updateSensorService,
+  deleteSensorService,
+} from "@services/SensorService"
 
-export class SensorController {
-  static async getAll(req: Request, res: Response) {
-    const gatewayMac = req.query.gatewayMac as string;
-    const sensors = await SensorService.getAll(gatewayMac);
+export const getAllSensors = async (req: Request, res: Response) => {
+  try {
+    const sensors = await getAllSensorsService();
     res.json(sensors);
+  } catch (err) {
+    res.status(500).json({ error: 'Error fetching sensors' });
   }
+};
 
-  static async getByMac(req: Request, res: Response) {
-    const sensor = await SensorService.getByMac(req.params.sensorMac);
-    if (!sensor) return res.status(404).json({ message: "Sensor not found" });
+export const getSensor = async (req: Request, res: Response) => {
+  try {
+    const sensor = await getSensorService(req.params.macAddress);
     res.json(sensor);
+  } catch (err) {
+    res.status(404).json({ error: 'Sensor not found' });
   }
+};
 
-  static async create(req: Request, res: Response) {
-    const gatewayMac = req.query.gatewayMac as string;
-    const data = {
-      ...req.body,
-      gatewayMacAddress: gatewayMac,
-    };
-    const sensor = await SensorService.create(data);
-    res.status(201).json(sensor);
+export const createSensor = async (req: Request, res: Response) => {
+  try {
+    const created = await createSensorService(req.body);
+    res.status(201).json(created);
+  } catch (err) {
+    res.status(400).json({ error: 'Error creating sensor' });
   }
+};
 
-  static async update(req: Request, res: Response) {
-    await SensorService.update(req.params.sensorMac, req.body);
+export const updateSensor = async (req: Request, res: Response) => {
+  try {
+    const updated = await updateSensorService(req.params.macAddress, req.body);
+    res.json(updated);
+  } catch (err) {
+    res.status(404).json({ error: 'Sensor not found' });
+  }
+};
+
+export const deleteSensor = async (req: Request, res: Response) => {
+  try {
+    await deleteSensorService(req.params.macAddress);
     res.status(204).send();
+  } catch (err) {
+    res.status(404).json({ error: 'Sensor not found' });
   }
-
-  static async remove(req: Request, res: Response) {
-    await SensorService.delete(req.params.sensorMac);
-    res.status(204).send();
-  }
-}
+};

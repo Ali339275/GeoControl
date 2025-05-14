@@ -1,27 +1,35 @@
-import { SensorRepository } from "@repositories/SensorRepository";
-import { Sensor } from "@dao/Sensor";
+import { SensorRepository } from '@repositories/SensorRepository';
+import { SensorDAO } from '@models/dao/SensorDAO';
 
-export class SensorService {
-  static async getAll(gatewayMacAddress: string): Promise<Sensor[]> {
-    return SensorRepository.find({
-      where: { gatewayMacAddress }
-    });
-  }
+const sensorRepo = new SensorRepository();
 
-  static async getByMac(macAddress: string): Promise<Sensor | null> {
-    return SensorRepository.findOneBy({ macAddress });
-  }
-
-  static async create(data: Partial<Sensor>): Promise<Sensor> {
-    const sensor = SensorRepository.create(data);
-    return SensorRepository.save(sensor);
-  }
-
-  static async update(macAddress: string, data: Partial<Sensor>): Promise<void> {
-    await SensorRepository.update({ macAddress }, data);
-  }
-
-  static async delete(macAddress: string): Promise<void> {
-    await SensorRepository.delete({ macAddress });
-  }
+export async function getAllSensorsService(): Promise<SensorDAO[]> {
+  return await sensorRepo.findAll();
 }
+
+export async function getSensorService(macAddress: string): Promise<SensorDAO> {
+  const sensor = await sensorRepo.findByMac(macAddress);
+  if (!sensor) {
+    throw new Error('Sensor not found');
+  }
+  return sensor;
+}
+
+export async function createSensorService(sensorData: SensorDAO): Promise<SensorDAO> {
+  return await sensorRepo.create(sensorData);
+}
+
+export async function updateSensorService(macAddress: string, updateData: Partial<SensorDAO>): Promise<SensorDAO> {
+  const updated = await sensorRepo.update(macAddress, updateData);
+  if (!updated) {
+    throw new Error('Sensor not found');
+  }
+  return updated;
+}
+
+export async function deleteSensorService(macAddress: string): Promise<void> {
+  const success = await sensorRepo.delete(macAddress);
+  if (!success) {
+    throw new Error('Sensor not found');
+  }
+} 
