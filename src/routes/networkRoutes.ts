@@ -21,15 +21,7 @@ const router = Router();
 // Get all networks (Any authenticated user)
 router.get("", authenticateUser(), async (req, res, next) => {
   try {
-    if(!req.body.name){
-      throw new BadRequestError(" /body/name must have required property name")
-    }
-    if(!req.body.code){
-      throw new BadRequestError(" /body/code must have required property code")
-    }
-    if(!req.body.description){
-      throw new BadRequestError(" /body/description must have required property description")
-    }
+    
 
     res.status(200).json(await getAllNetworks());
   } catch (error) {
@@ -40,6 +32,17 @@ router.get("", authenticateUser(), async (req, res, next) => {
 // Create a new network (Admin & Operator)
 router.post("",authenticateUser([UserType.Admin, UserType.Operator]), async (req, res, next) => {
   try{
+
+    if(!req.body.name){
+      throw new BadRequestError(" /body/name must have required property name")
+    }
+    if(!req.body.code){
+      throw new BadRequestError(" /body/code must have required property code")
+    }
+    if(!req.body.description){
+      throw new BadRequestError(" /body/description must have required property description")
+    }
+    
     await createNetwork(NetworkFromJSON(req.body));
     res.status(201).send();
   }
