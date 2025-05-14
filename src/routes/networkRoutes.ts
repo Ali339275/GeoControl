@@ -75,7 +75,7 @@ router.patch("/:networkCode", authenticateUser([UserType.Admin, UserType.Operato
     const code = req.params.networkCode;
     const networkDto = NetworkFromJSON(req.body);
     await updateNetwork(code, networkDto);
-    res.status(200).send();
+    res.status(204).send();
   } catch (error) {
     next(error);
   }
