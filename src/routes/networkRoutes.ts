@@ -65,6 +65,9 @@ router.get("/:networkCode", authenticateUser(), async (req, res, next) => {
 router.patch("/:networkCode", authenticateUser([UserType.Admin, UserType.Operator]), async(req, res, next) => {
   try {
 
+    if(!req.params.networkCode){
+      throw new BadRequestError("/params/code must have required property code")
+    }
     if(!req.body.name){
       throw new BadRequestError("/body/name must have required property name")
     }

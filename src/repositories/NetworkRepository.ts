@@ -20,7 +20,7 @@ export class NetworkRepository {
 
   async getNetworkByCode(code: string): Promise<NetworkDAO> {
     return findOrThrowNotFound(
-      await this.repo.find({ where: { code: code.toUpperCase() } }),
+      await this.repo.find({ where: { code: code } }),
       () => true,
       `Network with code '${code}' not found`
     );
@@ -72,7 +72,10 @@ export class NetworkRepository {
     existingNetwork.gateways = [];
   }
 
-  await this.repo.save(existingNetwork);
+   await this.repo.remove(await this.getNetworkByCode(code));
+   await this.repo.save(existingNetwork);
+   
+  
   }
 
   async deleteNetwork(code: string): Promise<void> {
