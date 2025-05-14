@@ -17,8 +17,6 @@ export class SensorDAO {
   @Column({ nullable: false }) 
   unit: string;
 
-  @Column({ nullable: true }) 
-  type: string;
 
   @Column()
   gatewayId: string; // stores gateway's macAddress
