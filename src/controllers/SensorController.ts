@@ -1,63 +1,95 @@
-// src/controllers/SensorController.ts
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from "express";
+import { SensorFromJSON } from "@dto/Sensor";
 import {
   getAllSensorsService,
   getSensorService,
   createSensorService,
   updateSensorService,
   deleteSensorService,
-} from '@services/SensorService';
+} from "@services/SensorService";
 
-export const getAllSensors = async (req: Request, res: Response) => {
+export async function getAllSensors(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const { networkCode, gatewayMac } = req.params;
   try {
-    const sensors = await getAllSensorsService();
-    res.json(sensors);
+    const sensors = await getAllSensorsService(networkCode, gatewayMac);
+    res.status(200).json(sensors);
   } catch (err) {
-    res.status(500).json({ error: 'Error fetching sensors' });
+    next(err);
   }
-};
+}
 
-export const getSensor = async (req: Request, res: Response) => {
+export async function getSensor(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const { networkCode, gatewayMac, macAddress } = req.params;
   try {
-    const sensor = await getSensorService(req.params.macAddress);
-    res.json(sensor);
+    const sensor = await getSensorService(
+      networkCode,
+      gatewayMac,
+      macAddress
+    );
+    res.status(200).json(sensor);
   } catch (err) {
-    res.status(404).json({ error: 'Sensor not found' });
+    next(err);
   }
-};
+}
 
-export const createSensor = async (req: Request, res: Response) => {
+export async function createSensor(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const { networkCode, gatewayMac } = req.params;
   try {
-    const { gatewayMac } = req.params;
-    const payload = {
-      ...req.body,
-      gatewayMac
-    };
+    // validate + convert JSON → DTO
+    const sensorDto = SensorFromJSON(req.body);
 
-    console.log("Create Sensor - Payload:", payload); // ✅ چک کردن داده ورودی
-
-    const created = await createSensorService(payload);
+    const created = await createSensorService(
+      networkCode,
+      gatewayMac,
+      sensorDto
+    );
     res.status(201).json(created);
   } catch (err) {
-    console.error("CREATE SENSOR ERROR:", err); // ✅ لاگ کامل خطا
-    res.status(400).json({ error: 'Error creating sensor' });
+    next(err);
   }
-};
+}
 
-export const updateSensor = async (req: Request, res: Response) => {
+export async function updateSensor(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const { networkCode, gatewayMac, macAddress } = req.params;
   try {
-    const updated = await updateSensorService(req.params.macAddress, req.body);
-    res.json(updated);
+    const updated = await updateSensorService(
+      networkCode,
+      gatewayMac,
+      macAddress,
+      req.body
+    );
+    res.status(200).json(updated);
   } catch (err) {
-    res.status(404).json({ error: 'Sensor not found' });
+    next(err);
   }
-};
+}
 
-export const deleteSensor = async (req: Request, res: Response) => {
+export async function deleteSensor(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const { networkCode, gatewayMac, macAddress } = req.params;
   try {
-    await deleteSensorService(req.params.macAddress);
-    res.status(204).send();
+    await deleteSensorService(networkCode, gatewayMac, macAddress);
+    res.sendStatus(204);
   } catch (err) {
-    res.status(404).json({ error: 'Sensor not found' });
+    next(err);
   }
-};
+}

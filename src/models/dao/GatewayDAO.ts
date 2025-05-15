@@ -19,6 +19,9 @@ export class GatewayDAO{
     })
     network: NetworkDAO;
 
+    @OneToMany(() => SensorDAO, (sensor) => sensor.gateway)
+    sensors: SensorDAO[];
+
 
 }
 

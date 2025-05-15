@@ -1,18 +1,41 @@
-import { Router } from 'express';
+import { Router } from "express";
 import {
   getAllSensors,
   getSensor,
   createSensor,
   updateSensor,
   deleteSensor,
-} from '@controllers/SensorController';
+} from "@controllers/SensorController";
+import { authenticateUser } from "@middlewares/authMiddleware";
+import { UserType } from "@models/UserType";
 
 const router = Router({ mergeParams: true });
 
-router.get('/', getAllSensors);
-router.get('/:macAddress', getSensor);
-router.post('/', createSensor);
-router.put('/:macAddress', updateSensor);
-router.delete('/:macAddress', deleteSensor);
+// List sensors (any authenticated user)
+router.get("/", authenticateUser(), getAllSensors);
+
+// Get one sensor (any authenticated user)
+router.get("/:macAddress", authenticateUser(), getSensor);
+
+// Create sensor (Admin & Operator)
+router.post(
+  "/",
+  authenticateUser([UserType.Admin, UserType.Operator]),
+  createSensor
+);
+
+// Update sensor (Admin & Operator)
+router.put(
+  "/:macAddress",
+  authenticateUser([UserType.Admin, UserType.Operator]),
+  updateSensor
+);
+
+// Delete sensor (Admin & Operator)
+router.delete(
+  "/:macAddress",
+  authenticateUser([UserType.Admin, UserType.Operator]),
+  deleteSensor
+);
 
 export default router;

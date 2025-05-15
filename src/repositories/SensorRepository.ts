@@ -1,35 +1,72 @@
 import { AppDataSource } from "@database";
-import { SensorDAO } from '../models/dao/SensorDAO';
-import { Repository } from 'typeorm';
+import { Repository } from "typeorm";
+import { SensorDAO } from "@models/dao/SensorDAO";
+import { GatewayRepository } from "@repositories/GatewayRepository";
+import { findOrThrowNotFound, throwConflictIfFound } from "@utils";
 
 export class SensorRepository {
-  private repository: Repository<SensorDAO>;
+  private repo: Repository<SensorDAO>;
+  private gatewayRepo = new GatewayRepository();
 
   constructor() {
-    this.repository = AppDataSource.getRepository(SensorDAO);
+    this.repo = AppDataSource.getRepository(SensorDAO);
   }
 
-  findAll(): Promise<SensorDAO[]> {
-    return this.repository.find({ relations: ['gateway'] });
+  async getAllSensors(
+    networkCode: string,
+    gatewayMac: string
+  ): Promise<SensorDAO[]> {
+    await this.gatewayRepo.getGateway(networkCode, gatewayMac);
+    return this.repo.find({ where: { gatewayId: gatewayMac } });
   }
 
-  findByMac(macAddress: string): Promise<SensorDAO | null> {
-    return this.repository.findOne({ where: { macAddress }, relations: ['gateway'] });
+  async getSensor(
+    networkCode: string,
+    gatewayMac: string,
+    sensorMac: string
+  ): Promise<SensorDAO> {
+    await this.gatewayRepo.getGateway(networkCode, gatewayMac);
+    const all = await this.repo.find({ where: { gatewayId: gatewayMac } });
+    return findOrThrowNotFound(
+      all,
+      (s) => s.macAddress === sensorMac,
+      `Sensor with MAC '${sensorMac}' not found`
+    );
   }
 
-  async create(sensor: SensorDAO): Promise<SensorDAO> {
-    return this.repository.save(sensor);
+  async createSensor(
+    networkCode: string,
+    gatewayMac: string,
+    sensor: SensorDAO
+  ): Promise<SensorDAO> {
+    await this.gatewayRepo.getGateway(networkCode, gatewayMac);
+    const existing = await this.repo.find({ where: { gatewayId: gatewayMac } });
+    throwConflictIfFound(
+      existing,
+      (s) => s.macAddress === sensor.macAddress,
+      `Sensor with MAC '${sensor.macAddress}' already exists`
+    );
+    sensor.gatewayId = gatewayMac;
+    return this.repo.save(sensor);
   }
 
-  async update(macAddress: string, updated: Partial<SensorDAO>): Promise<SensorDAO | null> {
-    const sensor = await this.findByMac(macAddress);
-    if (!sensor) return null;
+  async updateSensor(
+    networkCode: string,
+    gatewayMac: string,
+    sensorMac: string,
+    updated: Partial<SensorDAO>
+  ): Promise<SensorDAO> {
+    const sensor = await this.getSensor(networkCode, gatewayMac, sensorMac);
     Object.assign(sensor, updated);
-    return this.repository.save(sensor);
+    return this.repo.save(sensor);
   }
 
-  async delete(macAddress: string): Promise<boolean> {
-    const result = await this.repository.delete({ macAddress });
-    return result.affected !== 0;
+  async deleteSensor(
+    networkCode: string,
+    gatewayMac: string,
+    sensorMac: string
+  ): Promise<void> {
+    const sensor = await this.getSensor(networkCode, gatewayMac, sensorMac);
+    await this.repo.remove(sensor);
   }
 }
