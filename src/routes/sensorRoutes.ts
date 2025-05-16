@@ -24,8 +24,15 @@ router.post(
   createSensor
 );
 
-// Update sensor (Admin & Operator)
+// Update sensor (Admin & Operator) – full replace via PUT
 router.put(
+  "/:macAddress",
+  authenticateUser([UserType.Admin, UserType.Operator]),
+  updateSensor
+);
+
+// Update sensor (Admin & Operator) – partial update via PATCH
+router.patch(
   "/:macAddress",
   authenticateUser([UserType.Admin, UserType.Operator]),
   updateSensor
