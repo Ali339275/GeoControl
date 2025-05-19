@@ -17,7 +17,7 @@ export class GatewayRepository {
   async getAllGateways(networkCode: string): Promise<GatewayDAO[]> {
     const network = await this.networkRepo.findOne({
       where: { code: networkCode },
-      relations: ["gateways"]
+      relations: ["gateways", "gateways.sensors"]
     });
 
     if (!network) {
@@ -30,7 +30,7 @@ export class GatewayRepository {
   async getGateway(networkCode: string, macAddress: string): Promise<GatewayDAO> {
     const network = await this.networkRepo.findOne({
       where: { code: networkCode },
-      relations: ["gateways"]
+      relations: ["gateways", "gateways.sensors"]
     });
 
     if (!network) {
