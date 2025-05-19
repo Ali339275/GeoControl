@@ -17,7 +17,7 @@ export class MeasurementsDAO{
     @PrimaryColumn()
     sensorMacAddress: string;
 
-    @Column()
+    @Column('simple-json', { nullable: true })
     stats?: Stats;
 
     @OneToMany(() => MeasurementDAO, (measurement) => measurement.measurements,{

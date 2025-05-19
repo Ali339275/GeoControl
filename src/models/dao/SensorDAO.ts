@@ -25,8 +25,8 @@ export class SensorDAO {
   unit: string;
 
   // store the gateway's macAddress as a foreign key
-  // @Column()
-  // gatewayId: string;
+  @Column()
+  gatewayId: string;
 
   // set up the relation for proper JOINs
   @ManyToOne(() => GatewayDAO, (gateway) => gateway.sensors, {

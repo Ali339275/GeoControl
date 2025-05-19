@@ -3,7 +3,9 @@ import AppError from "@models/errors/AppError";
 import { Router } from "express";
 import { authenticateUser } from "@middlewares/authMiddleware";
 import { UserType } from "@models/UserType";
-import { getMeasuremnetsPerNetwork } from "@controllers/measurementsController";
+import { getMeasuremnetsPerNetwork,
+  getStatistics
+ } from "@controllers/measurementsController";
 
 const router = Router();
 
@@ -18,14 +20,13 @@ router.post(
 // Retrieve measurements for a specific sensor
 router.get(
   CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/measurements",
-  authenticateUser([UserType.Admin, UserType.Operator]),
   getMeasuremnetsPerNetwork
 );
 
 // Retrieve statistics for a specific sensor
-router.get(CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/stats", (req, res, next) => {
-  throw new AppError("Method not implemented", 500);
-});
+router.get(CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/stats", 
+  getStatistics
+);
 
 // Retrieve only outliers for a specific sensor
 router.get(

@@ -11,7 +11,7 @@ import { MeasurementsDAO } from './MeasurementsDAO';
 
 @Entity('measurement')
 export class MeasurementDAO{
-    @Column()
+    @PrimaryColumn()
     createdAt: Date;
 
     @Column()
