@@ -1,13 +1,18 @@
 import { CONFIG } from "@config";
 import AppError from "@models/errors/AppError";
 import { Router } from "express";
+import { authenticateUser } from "@middlewares/authMiddleware";
+import { UserType } from "@models/UserType";
 
 const router = Router();
 
 // Store a measurement for a sensor (Admin & Operator)
 router.post(
   CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/measurements",
-  (req, res, next) => {
+  authenticateUser([UserType.Admin, UserType.Operator]),
+  async (req, res, next) => {
+
+
     throw new AppError("Method not implemented", 500);
   }
 );

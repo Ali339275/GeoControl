@@ -1,7 +1,3 @@
-import AppError from "@models/errors/AppError";
-import { ConflictError } from "@models/errors/ConflictError";
-import { NotFoundError } from "@models/errors/NotFoundError";
-import { InsufficientRightsError } from "@models/errors/InsufficientRightsError";
 import { BadRequestError } from "@models/errors/BadRequestError";
 import { Router } from "express";
 import { authenticateUser } from "@middlewares/authMiddleware";
