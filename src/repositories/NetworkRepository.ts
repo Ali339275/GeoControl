@@ -54,7 +54,7 @@ export class NetworkRepository {
 
     const existingNetwork = await this.getNetworkByCode(code);
 
-    existingNetwork.code = updatedNetwork.code;
+    // existingNetwork.code = updatedNetwork.code;
     existingNetwork.name = updatedNetwork.name;
     existingNetwork.description = updatedNetwork.description;
 
@@ -72,7 +72,6 @@ export class NetworkRepository {
     existingNetwork.gateways = [];
   }
 
-   await this.repo.remove(await this.getNetworkByCode(code));
    await this.repo.save(existingNetwork);
    
   
