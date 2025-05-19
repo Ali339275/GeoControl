@@ -15,12 +15,14 @@ export class NetworkRepository {
   }
 
   getAllNetworks(): Promise<NetworkDAO[]> {
-    return this.repo.find();
+    return this.repo.find({
+    relations: ["gateways", "gateways.sensors"],
+  });
   }
 
   async getNetworkByCode(code: string): Promise<NetworkDAO> {
     return findOrThrowNotFound(
-      await this.repo.find({ where: { code: code } }),
+      await this.repo.find({ where: { code: code }, relations: ["gateways", "gateways.sensors"] }),
       () => true,
       `Network with code '${code}' not found`
     );
