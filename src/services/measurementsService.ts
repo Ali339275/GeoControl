@@ -19,6 +19,6 @@ export async function getMeasPerNetwork(
     startDate: string,
     endDate: string
   ): Promise<MeasurementDAO[]> {
-    return measurementRepo.getMeasPerNetwork(networkCode, sensorMacs, startDate, endDate);
+    return measurementRepo.getStatisticsPerSensorInNetwork(networkCode, sensorMacs, startDate, endDate);
   }
 

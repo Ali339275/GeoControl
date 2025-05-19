@@ -3,16 +3,14 @@ import AppError from "@models/errors/AppError";
 import { Router } from "express";
 import { authenticateUser } from "@middlewares/authMiddleware";
 import { UserType } from "@models/UserType";
+import { getMeasuremnetsPerNetwork } from "@controllers/measurementsController";
 
 const router = Router();
 
 // Store a measurement for a sensor (Admin & Operator)
 router.post(
   CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/measurements",
-  authenticateUser([UserType.Admin, UserType.Operator]),
-  async (req, res, next) => {
-
-
+  (req, res, next) => {
     throw new AppError("Method not implemented", 500);
   }
 );
@@ -20,9 +18,8 @@ router.post(
 // Retrieve measurements for a specific sensor
 router.get(
   CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/measurements",
-  (req, res, next) => {
-    throw new AppError("Method not implemented", 500);
-  }
+  authenticateUser([UserType.Admin, UserType.Operator]),
+  getMeasuremnetsPerNetwork
 );
 
 // Retrieve statistics for a specific sensor
