@@ -11,6 +11,7 @@ import type { Stats } from '@dto/Stats';
 import { MeasurementDAO } from './MeasurementDAO';
 import { SensorDAO } from './SensorDAO';
 
+
 @Entity('measurements')
 export class MeasurementsDAO {
   @PrimaryColumn()
@@ -31,4 +32,5 @@ export class MeasurementsDAO {
     eager: true,
   })
   measurements: MeasurementDAO[];
+
 }

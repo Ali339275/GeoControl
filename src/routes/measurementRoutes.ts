@@ -2,6 +2,7 @@ import { CONFIG } from "@config";
 import { Router } from "express";
 import { authenticateUser } from "@middlewares/authMiddleware";
 import { UserType } from "@models/UserType";
+import {AppError} from "@errors/AppError"
 import {
   getMeasurementsPerNetwork,
   getStatistics,
@@ -19,12 +20,13 @@ router.get(
   getMeasurementsPerNetwork
 );
 
-// GET  /api/v1/networks/:networkCode/gateways/:gatewayMac/sensors/:sensorMac/stats
+// Retrieve statistics for a set of sensors of a specific network
 router.get(
-  CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/stats",
+  CONFIG.ROUTES.V1_NETWORKS + "/:networkCode/stats",
   authenticateUser(),
   getStatistics
 );
+
 
 
 
@@ -41,5 +43,26 @@ router.get(
   authenticateUser(),
   getOutlierMeasurements
 );
+
+router.get(
+  CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/measurements",
+  (req, res, next) => {
+    throw new AppError("Method not implemented", 500);
+  }
+);
+
+// Retrieve statistics for a specific sensor
+router.get(CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/stats", (req, res, next) => {
+  throw new AppError("Method not implemented", 500);
+});
+
+// Retrieve only outliers for a specific sensor
+router.get(
+  CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/outliers",
+  (req, res, next) => {
+    throw new AppError("Method not implemented", 500);
+  }
+);
+
 
 export default router;

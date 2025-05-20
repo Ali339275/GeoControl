@@ -7,6 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { MeasurementsDAO } from './MeasurementsDAO';
+import {SensorDAO} from '@dao/SensorDAO'
 
 @Entity('measurement')
 export class MeasurementDAO {
@@ -24,6 +25,7 @@ export class MeasurementDAO {
   @Column('float')
   value: number;
 
+<<<<<<< HEAD
   @Column('boolean', { default: false })
   isOutlier: boolean;
   @ManyToOne(() => MeasurementsDAO, (grp) => grp.measurements, {
@@ -33,3 +35,16 @@ export class MeasurementDAO {
   @JoinColumn({ name: 'sensorMacAddress', referencedColumnName: 'sensorMacAddress' })
   measurements: MeasurementsDAO;
 }
+=======
+    @Column()
+    isOutlier?: boolean;
+
+    @ManyToOne(() => MeasurementsDAO, (m) => m.measurements,{
+        nullable: false
+    })
+    @JoinColumn({ name: 'MeasurementId', referencedColumnName: 'sensorMacAddress' })
+    measurements: MeasurementsDAO;
+    
+
+}
+>>>>>>> a7ebddb (updating measurements)

@@ -87,11 +87,17 @@ export async function storeMeasurements(
   next: NextFunction
 ): Promise<void> {
   const { networkCode, gatewayMac, sensorMac } = req.params;
+<<<<<<< HEAD
   const payload = (req.body as any[]).map((m) => ({
     createdAt: new Date(m.createdAt),
     value: m.value,
     isOutlier: m.isOutlier,
   }));
+=======
+  
+  // parse an array of { createdAt, value, isOutlier? }
+  const payload = (req.body as any[]).map(MeasurementFromJSON);
+>>>>>>> a7ebddb (updating measurements)
 
   try {
     await addMeasurements(networkCode, gatewayMac, sensorMac, payload);

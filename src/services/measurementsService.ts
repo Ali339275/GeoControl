@@ -55,14 +55,16 @@ export async function fetchOutliers(
   // filter only outliers
   const grouped: Record<string, any[]> = {};
   for (const m of allMeas) {
-    const mac = (m.measurements as any).sensorMacAddress;
+    const mac = m.sensorMacAddress
     const st = statsMap.get(mac);
     if (!st) continue;
-    if (m.value > st.upperThreshold || m.value < st.lowerThreshold) {
-      (grouped[mac] ||= []).push(m);
+  
+    for (const meas of m.measurements) {
+      if (meas.value > st.upperThreshold || meas.value < st.lowerThreshold) {
+        (grouped[mac] ||= []).push(meas);
+      }
     }
   }
-
   // merge into final shape
   return statsArr.map(s => {
     const mac = (s as any).sensorMacAddress;
