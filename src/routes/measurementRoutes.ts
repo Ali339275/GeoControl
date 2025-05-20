@@ -3,7 +3,7 @@ import { Router } from "express";
 import { authenticateUser } from "@middlewares/authMiddleware";
 import { UserType } from "@models/UserType";
 import {
-  getMeasuremnetsPerNetwork,
+  getMeasurementsPerNetwork,
   getStatistics,
   getOutlierMeasurements,
   storeMeasurements
@@ -16,7 +16,7 @@ const router = Router();
 router.get(
   CONFIG.ROUTES.V1_NETWORKS + "/:networkCode/measurements",
   authenticateUser(),               // any logged-in user
-  getMeasuremnetsPerNetwork
+  getMeasurementsPerNetwork
 );
 
 // GET  /api/v1/networks/:networkCode/gateways/:gatewayMac/sensors/:sensorMac/stats

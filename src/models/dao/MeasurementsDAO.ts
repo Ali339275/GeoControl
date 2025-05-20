@@ -16,15 +16,15 @@ export class MeasurementsDAO {
   @PrimaryColumn()
   sensorMacAddress: string;
 
-  @Column('simple-json', { nullable: true })
-  stats?: Stats;
-
   @ManyToOne(() => SensorDAO, (sensor) => sensor.measurementsGroup, {
     nullable: false,
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'sensorMacAddress', referencedColumnName: 'macAddress' })
   sensor: SensorDAO;
+
+  @Column('simple-json', { nullable: true })
+  stats?: Stats;
 
   @OneToMany(() => MeasurementDAO, (m) => m.measurements, {
     cascade: true,

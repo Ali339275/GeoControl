@@ -1,30 +1,35 @@
+// src/models/dao/MeasurementDAO.ts
 import {
-    Entity,
-    PrimaryColumn,
-    Column,
-    ManyToOne,
-    JoinColumn,
-    OneToMany,
-  } from 'typeorm';
-
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { MeasurementsDAO } from './MeasurementsDAO';
 
 @Entity('measurement')
-export class MeasurementDAO{
-    @PrimaryColumn()
-    createdAt: Date;
+export class MeasurementDAO {
+  @PrimaryGeneratedColumn()
+  id: number;
+  @Column({
+    type: 'text',
+    transformer: {
+      to: (value: Date) => value.toISOString(),
+      from: (value: string) => new Date(value),
+    },
+  })
+  createdAt: Date;
 
-    @Column()
-    value: number;
+  @Column('float')
+  value: number;
 
-    @Column()
-    isOutlier?: boolean;
-
-    @ManyToOne(() => MeasurementsDAO, (measurements) => measurements.measurements,{
-        nullable: false
-    })
-    @JoinColumn({ name: 'MeasurementId', referencedColumnName: 'sensorMacAddress' })
-    measurements: MeasurementsDAO;
-    
-
+  @Column('boolean', { default: false })
+  isOutlier: boolean;
+  @ManyToOne(() => MeasurementsDAO, (grp) => grp.measurements, {
+    nullable: false,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'sensorMacAddress', referencedColumnName: 'sensorMacAddress' })
+  measurements: MeasurementsDAO;
 }
