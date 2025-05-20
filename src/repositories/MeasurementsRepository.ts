@@ -6,6 +6,7 @@ import { findOrThrowNotFound, throwConflictIfFound } from "@utils";
 import { GatewayRepository } from "@repositories/GatewayRepository";
 import { NetworkRepository } from "@repositories/NetworkRepository";
 import { SensorRepository } from "@repositories/SensorRepository";
+import { SensorDAO } from "@models/dao/SensorDAO";
 
 
 export class MeasurementsRepository{
@@ -13,35 +14,81 @@ export class MeasurementsRepository{
     private gatewayRepo = new GatewayRepository();
     private networkRepo = new NetworkRepository();
     private sensorRepo = new SensorRepository();
+    private groupingRepo = AppDataSource.getRepository(MeasurementsDAO);
 
     constructor() {
         this.repo = AppDataSource.getRepository(MeasurementDAO);
     }
 
+
+async storeMeasurements(
+  networkCode: string,
+  gatewayMac: string,
+  sensorMac: string,
+  measurements: Array<{ createdAt: Date; value: number; isOutlier?: boolean }>
+): Promise<void> {
+  // 1) validate hierarchy exists
+  await this.networkRepo.getNetworkByCode(networkCode);
+  await this.gatewayRepo.getGateway(networkCode, gatewayMac);
+  await this.sensorRepo.getSensor(networkCode, gatewayMac, sensorMac);
+
+  // 2) fetch-or-create the grouping row
+  let grouping = await this.groupingRepo.findOne({
+    where: { sensorMacAddress: sensorMac },
+    relations: ["measurements"]
+  });
+
+  if (!grouping) {
+    grouping = new MeasurementsDAO();
+    grouping.sensorMacAddress = sensorMac;
+    grouping.measurements = [];
+  }
+
+  // 3) append each measurement
+  for (const m of measurements) {
+    const mdao = new MeasurementDAO();
+    mdao.createdAt = m.createdAt;
+    mdao.value = m.value;
+    mdao.isOutlier = m.isOutlier ?? false;
+    mdao.measurements = grouping;
+    grouping.measurements.push(mdao);
+  }
+
+  // 4) save with cascade
+  await this.groupingRepo.save(grouping);
+}
+
+
     async getMeasPerNetwork(
-        networkCode: string,
-        sensorMacs: string[],
-        startDate: string,
-        endDate: string
-    ): Promise<MeasurementDAO[]> {
+    networkCode: string,
+    sensorMacs: string[],
+    startDate: string,
+    endDate: string
+): Promise<MeasurementDAO[]> {
+    // ensure the network exists
+    await this.networkRepo.getNetworkByCode(networkCode);
 
-        const network = await this.networkRepo.getNetworkByCode(networkCode)
-    
+    const query = this.repo
+        .createQueryBuilder("m")
+        // join into the grouping table (MeasurementsDAO) via the "measurements" relation on MeasurementDAO
+        .innerJoin("m.measurements", "grp")
+        // now join SensorDAO by matching grp.sensorMacAddress → s.macAddress
+        .innerJoin(
+          SensorDAO,
+          "s",
+          "s.macAddress = grp.sensorMacAddress"
+        )
+        .innerJoin("s.gateway", "g")
+        .innerJoin("g.network", "n")
+        .where("n.code = :networkCode", { networkCode })
+        .andWhere("m.createdAt BETWEEN :startDate AND :endDate", { startDate, endDate });
 
-        const query = this.repo
-            .createQueryBuilder("m")
-            .leftJoinAndSelect("m.sensor", "s")
-            .leftJoin("s.gateway", "g")
-            .innerJoin("g.network", "n")
-            .where("n.networkCode = :networkCode", {networkCode})
-            .andWhere("m.createdAt BETWEEN :startDate AND :endDate", {startDate, endDate})
-            ;
-        if(sensorMacs && sensorMacs.length>0){
-            query.andWhere("s.sensorMac IN (:...sensorMacs)", {sensorMacs});
-        }
-        return query.getMany();
-        
+    if (sensorMacs && sensorMacs.length > 0) {
+        query.andWhere("s.macAddress IN (:...sensorMacs)", { sensorMacs });
     }
+
+    return query.getMany();
+}
 
 
     async getStatisticsPerSensorInNetwork(
@@ -86,3 +133,4 @@ export class MeasurementsRepository{
         return results;
     }
 }
+

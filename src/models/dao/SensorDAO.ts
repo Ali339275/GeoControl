@@ -4,11 +4,14 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { GatewayDAO } from './GatewayDAO';
+import { MeasurementsDAO } from './MeasurementsDAO';
 
 @Entity('sensor')
 export class SensorDAO {
+  [x: string]: any;
   @PrimaryColumn()
   macAddress: string;
 
@@ -35,4 +38,7 @@ export class SensorDAO {
   })
   @JoinColumn({ name: 'gatewayId', referencedColumnName: 'macAddress' })
   gateway: GatewayDAO;
+
+  @OneToMany(() => MeasurementsDAO, (grp) => grp.sensor)
+  measurementsGroup: MeasurementsDAO[];
 }
