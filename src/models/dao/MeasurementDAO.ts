@@ -13,6 +13,7 @@ import {SensorDAO} from '@dao/SensorDAO'
 export class MeasurementDAO {
   @PrimaryGeneratedColumn()
   id: number;
+
   @Column({
     type: 'text',
     transformer: {
@@ -25,9 +26,9 @@ export class MeasurementDAO {
   @Column('float')
   value: number;
 
-<<<<<<< HEAD
   @Column('boolean', { default: false })
   isOutlier: boolean;
+  
   @ManyToOne(() => MeasurementsDAO, (grp) => grp.measurements, {
     nullable: false,
     onDelete: 'CASCADE',
@@ -35,16 +36,3 @@ export class MeasurementDAO {
   @JoinColumn({ name: 'sensorMacAddress', referencedColumnName: 'sensorMacAddress' })
   measurements: MeasurementsDAO;
 }
-=======
-    @Column()
-    isOutlier?: boolean;
-
-    @ManyToOne(() => MeasurementsDAO, (m) => m.measurements,{
-        nullable: false
-    })
-    @JoinColumn({ name: 'MeasurementId', referencedColumnName: 'sensorMacAddress' })
-    measurements: MeasurementsDAO;
-    
-
-}
->>>>>>> a7ebddb (updating measurements)

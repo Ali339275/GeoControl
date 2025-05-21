@@ -51,6 +51,8 @@ export class MeasurementsRepository{
         grouping = new MeasurementsDAO();
         grouping.sensorMacAddress = sensorMac;
         grouping.measurements = [];
+
+        await this.groupingRepo.save(grouping); //persist the grouping so FK is valid
     }
 
     // 3) append each measurement
@@ -67,36 +69,6 @@ export class MeasurementsRepository{
     await this.groupingRepo.save(grouping);
     }
 
-
-    // async getMeasPerNetwork(
-    //     networkCode: string,
-    //     sensorMacs: string[],
-    //     startDate: string,
-    //     endDate: string
-    // ): Promise<MeasurementsDAO[]> {
-    //     // ensure the network exists
-    //     await this.networkRepo.getNetworkByCode(networkCode);
-     
-    //     const groups = await this.repo
-    //         .createQueryBuilder("m")
-    //         .leftJoinAndSelect("m.sensor", "s")
-    //         .leftJoin("s.gateway", "g")
-    //         .innerJoin("g.network", "n")
-    //         .leftJoinAndSelect("m.measurements", "meas")
-    //         .where("n.Code = :networkCode", { networkCode })
-    //         .andWhere(sensorMacs.length > 0 ? "s.macAddress IN (:...sensorMacs)" : "1=1", { sensorMacs })
-    //         .getMany();
-      
-    //     const filtered = groups.map(group => {
-    //         group.measurements = group.measurements.filter(meas => {
-    //         const createdAt = new Date(meas.createdAt);
-    //         return createdAt >= new Date(startDate) && createdAt <= new Date(endDate);
-    //         });
-    //         return group;
-    //     });
-        
-    //   return filtered;
-    // }
 
     async getMeasPerNetwork(
         networkCode: string,
@@ -221,7 +193,7 @@ export class MeasurementsRepository{
             lowerThreshold: number;
           };
         }[] = [];
-      
+        
         for (const group of measurementsGroups) {
           const values = group.measurements
             .filter((m) => {
@@ -246,9 +218,8 @@ export class MeasurementsRepository{
           };
       
           group.stats = stats;
-      
 
-          await this.repo.save(group); // Save updated entity with stats
+          // await this.repo.save(group); // Save updated entity with stats
       
 
           results.push({

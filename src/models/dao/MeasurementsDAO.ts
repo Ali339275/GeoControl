@@ -32,5 +32,4 @@ export class MeasurementsDAO {
     eager: true,
   })
   measurements: MeasurementDAO[];
-
 }
