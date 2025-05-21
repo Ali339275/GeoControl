@@ -6,6 +6,7 @@ import { findOrThrowNotFound, throwConflictIfFound } from "@utils";
 import { GatewayRepository } from "@repositories/GatewayRepository";
 import { NetworkRepository } from "@repositories/NetworkRepository";
 import { SensorRepository } from "@repositories/SensorRepository";
+import formatWithOffset from "@controllers/measurementsController"
 import { SensorDAO } from "@models/dao/SensorDAO";
 export interface Stats {
     startDate?: Date;
@@ -109,8 +110,8 @@ export class MeasurementsRepository{
           const mac = group.sensor.macAddress;
       
           const filteredMeasurements = group.measurements.filter(meas => {
-            const createdAt = new Date(meas.createdAt);
-            return createdAt >= new Date(startDate) && createdAt <= new Date(endDate);
+            const createdAt = formatWithOffset(meas.createdAt);
+            return createdAt >= (startDate) && createdAt <= (endDate);
           });
       
           const values = filteredMeasurements.map(m => m.value);
@@ -138,7 +139,7 @@ export class MeasurementsRepository{
               (meas.value > stats.upperThreshold || meas.value < stats.lowerThreshold);
       
             return {
-              createdAt: meas.createdAt,
+              createdAt: (meas.createdAt),
               value: parseFloat(meas.value.toFixed(4)),
               isOutlier
             };
@@ -164,8 +165,8 @@ export class MeasurementsRepository{
         {
           sensorMac: string;
           stats?: {
-            startDate: Date;
-            endDate: Date;
+            startDate: string;
+            endDate: string;
             mean: number;
             variance: number;
             upperThreshold: number;
@@ -197,8 +198,8 @@ export class MeasurementsRepository{
         for (const group of measurementsGroups) {
           const values = group.measurements
             .filter((m) => {
-              const createdAt = new Date(m.createdAt);
-              return createdAt >= new Date(startDate) && createdAt <= new Date(endDate);
+              const createdAt =formatWithOffset(m.createdAt);
+              return createdAt >= (startDate) && createdAt <= (endDate);
             })
             .map((m) => m.value);
       
@@ -227,7 +228,22 @@ export class MeasurementsRepository{
             stats,
           });
         }
+
+        const formattedResults = results.map(r => ({
+          sensorMac: r.sensorMac,
+          stats: r.stats
+            ? {
+                startDate: formatWithOffset(r.stats.startDate),
+                endDate: formatWithOffset(r.stats.endDate),
+                mean: r.stats.mean,
+                variance: r.stats.variance,
+                upperThreshold: r.stats.upperThreshold,
+                lowerThreshold: r.stats.lowerThreshold
+              }
+            : undefined
+        }));
+        
+        return formattedResults;
       
-        return results;
     }
 }

@@ -45,14 +45,26 @@ export async function getMeasurementsPerNetwork(
       endDate
     );
 
-    // const formatted = measurements.map((m) => ({
-    //   sensorMacAddress: (m as any).sensorMacAddress,
-    //   createdAt: formatWithOffset(m.createdAt),
-    //   value: m.value,
-    //   isOutlier: m.isOutlier ?? false,
-    // }));
+    const formattedMeasurements = measurements.map(group => ({
+      sensorMacAddress: group.sensorMacAddress,
+      stats: group.stats
+        ? {
+            startDate: formatWithOffset(group.stats.startDate),
+            endDate: formatWithOffset(group.stats.endDate),
+            mean: group.stats.mean,
+            variance: group.stats.variance,
+            upperThreshold: group.stats.upperThreshold,
+            lowerThreshold: group.stats.lowerThreshold
+          }
+        : undefined,
+      measurements: group.measurements.map(m => ({
+        createdAt: formatWithOffset(m.createdAt),
+        value: m.value,
+        isOutlier: m.isOutlier,
+      }))
+    }));
 
-    res.status(200).json(measurements);
+    res.status(200).json(formattedMeasurements);
   } catch (err) {
     next(err);
   }
@@ -75,6 +87,8 @@ export async function getStatistics(
       startDate,
       endDate
     );
+
+    
     res.status(200).json(stats);
   } catch (err) {
     next(err);
@@ -134,3 +148,5 @@ export async function getOutlierMeasurements(
     next(err);
   }
 }
+
+export default formatWithOffset
