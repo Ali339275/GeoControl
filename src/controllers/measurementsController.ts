@@ -6,6 +6,9 @@ import {
   getStatisticsPerSensorInNetwork,
   addMeasurements,
   fetchOutliers,
+  getMeasurementsForSingleSensor,
+  getStatisticsForSingleSensor,
+  getOutliersForSingleSensor,
 } from "@services/measurementsService";
 import { toZonedTime, format } from "date-fns-tz";
 
@@ -148,5 +151,99 @@ export async function getOutlierMeasurements(
     next(err);
   }
 }
+export async function getMeasurementsForSensor(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const { networkCode, gatewayMac, sensorMac } = req.params;
+  const startDate = normalizeDateParam(req.query.startDate);
+  const endDate = normalizeDateParam(req.query.endDate);
 
+  try {
+    const result = await getMeasurementsForSingleSensor(
+      networkCode,
+      gatewayMac,
+      sensorMac,
+      startDate,
+      endDate
+    );
+
+    res.status(200).json({
+      sensorMacAddress: result.sensorMacAddress,
+      stats: result.stats
+        ? {
+            startDate: formatWithOffset(result.stats.startDate),
+            endDate: formatWithOffset(result.stats.endDate),
+            mean: result.stats.mean,
+            variance: result.stats.variance,
+            upperThreshold: result.stats.upperThreshold,
+            lowerThreshold: result.stats.lowerThreshold,
+          }
+        : undefined,
+      measurements: result.measurements.map((m) => ({
+        createdAt: formatWithOffset(m.createdAt),
+        value: m.value,
+        isOutlier: m.isOutlier,
+      })),
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getStatisticsForSensor(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const { networkCode, gatewayMac, sensorMac } = req.params;
+  const startDate = normalizeDateParam(req.query.startDate);
+  const endDate = normalizeDateParam(req.query.endDate);
+
+  try {
+    const result = await getStatisticsForSingleSensor(
+      networkCode,
+      gatewayMac,
+      sensorMac,
+      startDate,
+      endDate
+    );
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getOutliersForSensor(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const { networkCode, gatewayMac, sensorMac } = req.params;
+  const startDate = normalizeDateParam(req.query.startDate);
+  const endDate = normalizeDateParam(req.query.endDate);
+
+  try {
+    const result = await getOutliersForSingleSensor(
+      networkCode,
+      gatewayMac,
+      sensorMac,
+      startDate,
+      endDate
+    );
+
+    res.status(200).json({
+      sensorMacAddress: result.sensorMacAddress,
+      stats: result.stats,
+      measurements: result.measurements.map((m) => ({
+        createdAt: formatWithOffset(m.createdAt),
+        value: m.value,
+        isOutlier: m.isOutlier,
+      })),
+    });
+  } catch (err) {
+    next(err);
+  }
+}
 export default formatWithOffset

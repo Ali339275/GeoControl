@@ -2,74 +2,66 @@ import { CONFIG } from "@config";
 import { Router } from "express";
 import { authenticateUser } from "@middlewares/authMiddleware";
 import { UserType } from "@models/UserType";
-import {AppError} from "@errors/AppError"
 import {
   getMeasurementsPerNetwork,
   getStatistics,
   getOutlierMeasurements,
-  storeMeasurements
+  storeMeasurements,
+  getMeasurementsForSensor,
+  getStatisticsForSensor,
+  getOutliersForSensor
 } from "@controllers/measurementsController";
 
 const router = Router();
 
+// ✅ Network-wide routes
 
-// GET  /api/v1/networks/:networkCode/measurements
 router.get(
   CONFIG.ROUTES.V1_NETWORKS + "/:networkCode/measurements",
-  authenticateUser(),               // any logged-in user
+  authenticateUser(),
   getMeasurementsPerNetwork
 );
 
-// Retrieve statistics for a set of sensors of a specific network
 router.get(
   CONFIG.ROUTES.V1_NETWORKS + "/:networkCode/stats",
   authenticateUser(),
   getStatistics
 );
 
+router.get(
+  CONFIG.ROUTES.V1_NETWORKS + "/:networkCode/outliers",
+  authenticateUser(),
+  getOutlierMeasurements
+);
 
+// ✅ Sensor-specific routes (under network/gateway/sensor)
 
-
-// POST /api/v1/networks/:networkCode/gateways/:gatewayMac/sensors/:sensorMac/measurements
 router.post(
-  CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/measurements",
+  CONFIG.ROUTES.V1_NETWORKS +
+    "/:networkCode/gateways/:gatewayMac/sensors/:sensorMac/measurements",
   authenticateUser([UserType.Admin, UserType.Operator]),
   storeMeasurements
 );
 
-// GET  /api/v1/networks/:networkCode/outliers
 router.get(
-  CONFIG.ROUTES.V1_NETWORKS + "/:networkCode/outliers",
+  CONFIG.ROUTES.V1_NETWORKS +
+    "/:networkCode/gateways/:gatewayMac/sensors/:sensorMac/measurements",
   authenticateUser(),
-  getOutlierMeasurements
+  getMeasurementsForSensor
 );
 
 router.get(
-  CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/measurements",
-  (req, res, next) => {
-    throw new AppError("Method not implemented", 500);
-  }
-);
-
-// Retrieve statistics for a specific sensor
-router.get(CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/stats", (req, res, next) => {
-  throw new AppError("Method not implemented", 500);
-});
-
-// Retrieve only outliers for a specific sensor
-router.get(
-  CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/outliers",
-  authenticateUser(),            
-  (req, res, next) => {
-    req.query.sensorMacs = [req.params.sensorMac];
-    return getOutlierMeasurements(req, res, next);
-  }
-);
-// Retrieve only outliers for a set of sensors in a network
-router.get(
-  CONFIG.ROUTES.V1_NETWORKS + "/:networkCode/outliers",
+  CONFIG.ROUTES.V1_NETWORKS +
+    "/:networkCode/gateways/:gatewayMac/sensors/:sensorMac/stats",
   authenticateUser(),
-  getOutlierMeasurements
+  getStatisticsForSensor
+);
+
+router.get(
+  CONFIG.ROUTES.V1_NETWORKS +
+    "/:networkCode/gateways/:gatewayMac/sensors/:sensorMac/outliers",
+  authenticateUser(),
+  getOutliersForSensor
 );
 
 export default router;
