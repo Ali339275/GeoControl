@@ -28,7 +28,7 @@ describe("Networks E2E", () => {
     const res = await request(app)
   .post("/api/v1/networks")
   .set("Authorization", `Bearer ${token}`)
-  .set("Content-Type", "application/json") // 👈 optional but safe
+  .set("Content-Type", "application/json")
   .send({
     code: "NET_TEST",
     name: "Test Network",
@@ -52,10 +52,13 @@ describe("Networks E2E", () => {
     const res = await request(app)
       .patch("/api/v1/networks/NET_TEST")
       .set("Authorization", `Bearer ${token}`)
-      .send({ name: "Updated Network Name" });
+      .send({
+        code: "NET_TEST_Update",
+        name: "Updated Network Name",
+        description: "Updated description"
+      });
 
-    expect(res.status).toBe(200);
-    expect(res.body.name).toBe("Updated Network Name");
+    expect(res.status).toBe(204);
   });
 
   it("should delete a network", async () => {

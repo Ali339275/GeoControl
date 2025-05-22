@@ -17,7 +17,6 @@ const router = Router();
 // Get all networks (Any authenticated user)
 router.get("", authenticateUser(), async (req, res, next) => {
   try {
-    
 
     res.status(200).json(await getAllNetworks());
   } catch (error) {
@@ -40,7 +39,7 @@ router.post("",authenticateUser([UserType.Admin, UserType.Operator]), async (req
     }
     
     await createNetwork(NetworkFromJSON(req.body));
-    res.status(201).send();
+    res.status(201).json({ code : req.body.code, name: req.body.name, description: req.body.description});
   }
   catch(error){
     next(error);
