@@ -37,41 +37,75 @@ export async function fetchOutliers(
   sensorMacs: string[],
   startDate: string,
   endDate: string
-): Promise<Array<{
-  sensorMacAddress: string;
-  stats: any;
-  measurements: any[];
-}>> {
-  // 1) compute stats per sensor
-  const statsArr = await repo.getStatisticsPerSensorInNetwork(networkCode, sensorMacs, startDate, endDate);
-  // 2) load all measurements in window
-  const allMeas = await repo.getMeasPerNetwork(networkCode, sensorMacs, startDate, endDate);
-
-  // build a quick map of stats
-  const statsMap = new Map<string, any>(
-    statsArr.map(s => [ (s as any).sensorMacAddress, (s as any).stats ])
+): Promise<
+  Array<{
+    sensorMacAddress: string;
+    stats: {
+      startDate: string;
+      endDate: string;
+      mean: number;
+      variance: number;
+      upperThreshold: number;
+      lowerThreshold: number;
+    };
+    measurements: Array<{
+      createdAt: Date;
+      value: number;
+      isOutlier: true;
+    }>;
+  }>
+> {
+  // 1) Fetch μ & σ² for each sensor
+  const statsArr = await repo.getStatisticsPerSensorInNetwork(
+    networkCode,
+    sensorMacs,
+    startDate,
+    endDate
   );
 
-  // filter only outliers
-  const grouped: Record<string, any[]> = {};
-  for (const m of allMeas) {
-    const mac = m.sensorMacAddress
-    const st = statsMap.get(mac);
-    if (!st) continue;
-  
-    for (const meas of m.measurements) {
-      if (meas.value > st.upperThreshold || meas.value < st.lowerThreshold) {
-        (grouped[mac] ||= []).push(meas);
-      }
-    }
-  }
-  // merge into final shape
-  return statsArr.map(s => {
-    const mac = (s as any).sensorMacAddress;
+  // 2) Fetch all raw measurements in the same window
+  const allGroups = await repo.getMeasPerNetwork(
+    networkCode,
+    sensorMacs,
+    startDate,
+    endDate
+  );
+
+  // 3) For each sensor, compute σ, thresholds, then pick only outliers
+  return statsArr.map((item: any) => {
+    const mac = item.sensorMacAddress;
+    const raw = item.stats!;
+    const μ = raw.mean;
+    const σ = Math.sqrt(raw.variance);
+    const upper = μ + 2 * σ;
+    const lower = μ - 2 * σ;
+
+    // find this sensor’s measurements
+    const group = allGroups.find((g: any) => g.sensorMacAddress === mac);
+    const meas = Array.isArray(group?.measurements)
+      ? group!.measurements
+      : [];
+
+    // filter to only true outliers
+    const outliers = meas
+      .filter((m: any) => m.value > upper || m.value < lower)
+      .map((m: any) => ({
+        createdAt: m.createdAt,
+        value: m.value,
+        isOutlier: true as const
+      }));
+
     return {
       sensorMacAddress: mac,
-      stats: (s as any).stats,
-      measurements: grouped[mac] || []
+      stats: {
+        startDate: raw.startDate,
+        endDate: raw.endDate,
+        mean: μ,
+        variance: raw.variance,
+        upperThreshold: upper,
+        lowerThreshold: lower
+      },
+      measurements: outliers
     };
   });
 }

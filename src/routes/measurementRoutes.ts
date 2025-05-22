@@ -59,10 +59,17 @@ router.get(CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/stats", (req, res, next) => {
 // Retrieve only outliers for a specific sensor
 router.get(
   CONFIG.ROUTES.V1_SENSORS + "/:sensorMac/outliers",
+  authenticateUser(),            
   (req, res, next) => {
-    throw new AppError("Method not implemented", 500);
+    req.query.sensorMacs = [req.params.sensorMac];
+    return getOutlierMeasurements(req, res, next);
   }
 );
-
+// Retrieve only outliers for a set of sensors in a network
+router.get(
+  CONFIG.ROUTES.V1_NETWORKS + "/:networkCode/outliers",
+  authenticateUser(),
+  getOutlierMeasurements
+);
 
 export default router;
