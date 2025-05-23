@@ -11,7 +11,8 @@ import {
   getOutliersForSingleSensor,
 } from "@services/measurementsService";
 import { toZonedTime, format } from "date-fns-tz";
-
+import { getAllGatewaysService } from "@services/gatewayService";
+import { getAllSensorsService }  from "@services/SensorService"; 
 const TIME_ZONE = "Europe/Rome";
 
 function formatWithOffset(date: Date): string {
@@ -122,31 +123,58 @@ export async function getOutlierMeasurements(
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<void> {
-  const networkCode = req.params.networkCode;
-  const sensorMacs = normalizeSensorMacs(req.query.sensorMacs as any);
-  const startDate = normalizeDateParam(req.query.startDate);
-  const endDate = normalizeDateParam(req.query.endDate);
+) {
+  const { networkCode } = req.params;
+  const requestedMacs = normalizeSensorMacs(req.query.sensorMacs as any);
+  const startDate     = normalizeDateParam(req.query.startDate);
+  const endDate       = normalizeDateParam(req.query.endDate);
 
   try {
-    const raw = await fetchOutliers(
-      networkCode,
-      sensorMacs,
-      startDate,
-      endDate
+    const gateways = await getAllGatewaysService(networkCode);
+
+    const sensorGroups = await Promise.all(
+      gateways.map((gw) =>
+        getAllSensorsService(networkCode, gw.macAddress)
+          .then((daos) =>
+            daos.map((s) => ({
+              macAddress: s.macAddress,
+              gatewayMac: gw.macAddress,
+            }))
+          )
+      )
     );
 
-    const formatted = raw.map((sensor) => ({
-      sensorMacAddress: sensor.sensorMacAddress,
-      stats: sensor.stats,
-      measurements: sensor.measurements.map((m) => ({
+    let sensors = sensorGroups.flat();
+
+    if (requestedMacs.length) {
+      sensors = sensors.filter((s) =>
+        requestedMacs.includes(s.macAddress)
+      );
+    }
+
+    const results = await Promise.all(
+      sensors.map((s) =>
+        getOutliersForSingleSensor(
+          networkCode,
+          s.gatewayMac,
+          s.macAddress,
+          startDate,
+          endDate
+        )
+      )
+    );
+
+    const payload = results.map((r) => ({
+      sensorMacAddress: r.sensorMacAddress,
+      stats:            r.stats,
+      measurements: r.measurements.map((m) => ({
         createdAt: formatWithOffset(m.createdAt),
-        value: m.value,
+        value:     m.value,
         isOutlier: m.isOutlier,
       })),
     }));
 
-    res.status(200).json(formatted);
+    res.status(200).json(payload);
   } catch (err) {
     next(err);
   }
