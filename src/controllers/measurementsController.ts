@@ -113,7 +113,7 @@ export async function storeMeasurements(
 
   try {
     await addMeasurements(networkCode, gatewayMac, sensorMac, payload);
-    res.status(201).send();
+    res.status(201).json({ message: "Measurement created" });
   } catch (err) {
     next(err);
   }

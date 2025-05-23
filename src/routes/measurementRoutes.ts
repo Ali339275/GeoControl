@@ -14,7 +14,6 @@ import {
 
 const router = Router();
 
-// ✅ Network-wide routes
 
 router.get(
   CONFIG.ROUTES.V1_NETWORKS + "/:networkCode/measurements",
