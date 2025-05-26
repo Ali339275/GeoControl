@@ -47,7 +47,6 @@ export async function createSensor(
 ): Promise<void> {
   const { networkCode, gatewayMac } = req.params;
   try {
-    // validate + convert JSON → DTO
     const sensorDto = SensorFromJSON(req.body);
 
     const created = await createSensorService(
