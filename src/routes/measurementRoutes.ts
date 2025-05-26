@@ -33,7 +33,7 @@ router.get(
   getOutlierMeasurements
 );
 
-// ✅ Sensor-specific routes (under network/gateway/sensor)
+// Sensor-specific routes (under network/gateway/sensor)
 
 router.post(
   CONFIG.ROUTES.V1_NETWORKS +

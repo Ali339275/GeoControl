@@ -26,14 +26,14 @@ describe("Networks E2E", () => {
 
   it("should create a new network", async () => {
     const res = await request(app)
-  .post("/api/v1/networks")
-  .set("Authorization", `Bearer ${token}`)
-  .set("Content-Type", "application/json")
-  .send({
-    code: "NET_TEST",
-    name: "Test Network",
-    description: "This is a test network"
-  });
+      .post("/api/v1/networks")
+      .set("Authorization", `Bearer ${token}`)
+      .set("Content-Type", "application/json")
+      .send({
+        code: "NET_TEST",
+        name: "Test Network",
+        description: "This is a test network"
+      });
 
     expect(res.status).toBe(201);
     expect(res.body.code).toBe("NET_TEST");
@@ -52,6 +52,7 @@ describe("Networks E2E", () => {
     const res = await request(app)
       .patch("/api/v1/networks/NET_TEST")
       .set("Authorization", `Bearer ${token}`)
+      .set("Content-Type", "application/json")
       .send({
         code: "NET_TEST_Update",
         name: "Updated Network Name",
@@ -61,9 +62,9 @@ describe("Networks E2E", () => {
     expect(res.status).toBe(204);
   });
 
-  it("should delete a network", async () => {
+  it("should delete the updated network", async () => {
     const res = await request(app)
-      .delete("/api/v1/networks/NET_TEST")
+      .delete("/api/v1/networks/NET_TEST_Update")
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(204);

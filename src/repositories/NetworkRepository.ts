@@ -4,6 +4,7 @@ import { Repository } from "typeorm";
 import { findOrThrowNotFound, throwConflictIfFound } from "@utils";
 import { Gateway } from "@models/dto/Gateway";
 import { GatewayDAO } from "@models/dao/GatewayDAO";
+import { SensorDAO } from "@models/dao/SensorDAO";
 import {Network as NetworkDTO} from "@dto/Network"
 
 
@@ -48,36 +49,51 @@ export class NetworkRepository {
     });
   }
 
-  async updateNetwork(code: string, updatedNetwork: NetworkDTO): Promise<void> {
 
+
+  async updateNetwork(oldCode: string, updatedNetwork: NetworkDTO): Promise<void> {
     if (!updatedNetwork.code || !updatedNetwork.name || !updatedNetwork.description) {
-        throw new Error("All fields (code, name, and description) must be provided.");
+      throw new Error("All fields (code, name, and description) must be provided.");
     }
 
-    const existingNetwork = await this.getNetworkByCode(code);
+    const existingNetwork = await this.getNetworkByCode(oldCode);
 
-    // existingNetwork.code = updatedNetwork.code;
-    existingNetwork.name = updatedNetwork.name;
-    existingNetwork.description = updatedNetwork.description;
 
-  if (updatedNetwork.gateways) {
-    existingNetwork.gateways = updatedNetwork.gateways.map(gw => {
-      const gatewayDAO = new GatewayDAO();
-      gatewayDAO.macAddress = gw.macAddress!;
-      gatewayDAO.name = gw.name!;
-      gatewayDAO.description = gw.description!;
-      gatewayDAO.network = existingNetwork; // This is critical
+    const newNetwork = new NetworkDAO();
+    newNetwork.code = updatedNetwork.code;
+    newNetwork.name = updatedNetwork.name;
+    newNetwork.description = updatedNetwork.description;
+    newNetwork.gateways = [];
 
-      return gatewayDAO;
-    });
-  } else {
-    existingNetwork.gateways = [];
+
+    for (const oldGateway of existingNetwork.gateways) {
+      const newGateway = new GatewayDAO();
+      newGateway.macAddress = oldGateway.macAddress;
+      newGateway.name = oldGateway.name;
+      newGateway.description = oldGateway.description;
+      newGateway.network = newNetwork;
+
+      newGateway.sensors = (oldGateway.sensors || []).map(oldSensor => {
+        const newSensor = new SensorDAO();
+        newSensor.macAddress = oldSensor.macAddress;
+        newSensor.name = oldSensor.name;
+        newSensor.description = oldSensor.description;
+        newSensor.variable = oldSensor.variable;
+        newSensor.unit = oldSensor.unit;
+        newSensor.gateway = newGateway;
+        newSensor.networkCode = updatedNetwork.code;
+        return newSensor;
+      });
+
+      newNetwork.gateways.push(newGateway);
+    }
+
+
+    await this.repo.save(newNetwork);
+
+    await this.repo.delete(oldCode);
   }
 
-   await this.repo.save(existingNetwork);
-   
-  
-  }
 
   async deleteNetwork(code: string): Promise<void> {
     await this.repo.remove(await this.getNetworkByCode(code));

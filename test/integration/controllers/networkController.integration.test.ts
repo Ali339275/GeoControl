@@ -94,6 +94,7 @@ describe("NetworkController integration", () => {
     await networkController.updateNetwork("UPD_CODE", updatedNetwork);
 
     expect(mockUpdate).toHaveBeenCalledWith("UPD_CODE", updatedNetwork);
+      
   });
 
   it("deleteNetwork: calls repository with correct code", async () => {

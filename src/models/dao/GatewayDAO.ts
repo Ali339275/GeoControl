@@ -16,6 +16,8 @@ export class GatewayDAO{
 
     @ManyToOne(() => NetworkDAO, (network) => network.gateways, {
         nullable: false,
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
     })
     network: NetworkDAO;
 

@@ -2,6 +2,9 @@ import { ConflictError } from "@models/errors/ConflictError";
 import { NotFoundError } from "@models/errors/NotFoundError";
 import { isValid, parseISO } from "date-fns";
 
+import { AppDataSource } from "@database";
+import { TestDataSource } from "@test/setup/test-datasource";
+
 export function findOrThrowNotFound<T>(
   array: T[],
   predicate: (item: T) => boolean,
@@ -47,6 +50,11 @@ export function parseStringArrayParam(param?: unknown): string[] | undefined {
       .map((s) => s.trim())
       .filter((s) => s !== "");
   }
-
   return undefined;
 }
+
+export function getActiveDataSource() {
+  return process.env.NODE_ENV === "test" ? TestDataSource : AppDataSource;
+}
+
+export default getActiveDataSource;

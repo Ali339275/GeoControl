@@ -41,4 +41,5 @@ export class SensorDAO {
 
   @OneToMany(() => MeasurementsDAO, (grp) => grp.sensor)
   measurementsGroup: MeasurementsDAO[];
+
 }

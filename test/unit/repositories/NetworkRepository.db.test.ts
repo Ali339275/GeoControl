@@ -8,6 +8,8 @@ import { NetworkDAO } from "@models/dao/NetworkDAO";
 import { Gateway } from "@models/dto/Gateway";
 import { ConflictError } from "@models/errors/ConflictError";
 import { NotFoundError } from "@models/errors/NotFoundError";
+import { createGatewayService } from "@services/gatewayService";
+import { createSensorService } from "@services/SensorService";
 
 beforeAll(async () => {
   await initializeTestDataSource();
@@ -49,6 +51,47 @@ describe("NetworkRepository: SQLite in-memory", () => {
 
   it("get network by code: not found", async () => {
     await expect(repo.getNetworkByCode("UNKNOWN")).rejects.toThrow(NotFoundError);
+  });
+
+  it("should preserve gateways and sensors when updating network code", async () => {
+    const oldCode = "NET1";
+    const newCode = "NET2";
+  
+
+    await repo.createNetwork(oldCode, "Original Name", "Original Description", []);
+  
+    await createGatewayService(oldCode, {
+      macAddress: "GW1",
+      name: "Gateway 1",
+      description: "Gateway Description"
+    });
+  
+    await createSensorService(oldCode, "GW1", {
+      macAddress: "S1",
+      name: "Sensor 1",
+      description: "Sensor Desc",
+      variable: "temperature",
+      unit: "C"
+    });
+  
+    const original = await repo.getNetworkByCode(oldCode);
+    const originalGateways = original.gateways;
+    const originalSensors = original.gateways[0].sensors;
+  
+    await repo.updateNetwork(oldCode, {
+      code: newCode,
+      name: "Updated Name",
+      description: "Updated Desc",
+      gateways: [] // ignored
+    });
+  
+    const updated = await repo.getNetworkByCode(newCode);
+  
+    expect(updated.code).toBe(newCode);
+    expect(updated.name).toBe("Updated Name");
+    expect(updated.description).toBe("Updated Desc");
+    expect(updated.gateways).toHaveLength(originalGateways.length);
+    expect(updated.gateways[0].sensors).toHaveLength(originalSensors.length);
   });
 
   it("delete network", async () => {
