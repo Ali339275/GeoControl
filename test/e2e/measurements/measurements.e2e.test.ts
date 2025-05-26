@@ -7,6 +7,7 @@ describe("Measurements E2E", () => {
   let token: string;
   const gatewayMac = "AA:BB:CC:DD:EE:FF";
   const sensorMac = "11:22:33:44:55:66";
+  const prefix = '/api/v1';
 
   beforeAll(async () => {
     await beforeAllE2e();
@@ -102,4 +103,43 @@ describe("Measurements E2E", () => {
     expect(first.stats).toHaveProperty("mean");
     expect(first.stats).toHaveProperty("variance");
   });
+  it("should return outliers [GET /networks/:networkCode/outliers]", async () => {
+  const net = "NET_TEST";
+
+  await request(app)
+    .post(
+      `${prefix}/networks/${net}/gateways/${gatewayMac}/sensors/${sensorMac}/measurements`
+    )
+    .set("Authorization", `Bearer ${token}`)
+    .send([
+      { createdAt: "2025-05-01T08:00:00Z", value: 0 },
+      { createdAt: "2025-05-01T08:01:00Z", value: 0 },
+      { createdAt: "2025-05-01T08:02:00Z", value: 0 },
+      { createdAt: "2025-05-01T08:03:00Z", value: 0 },
+      { createdAt: "2025-05-01T08:04:00Z", value: 0 },
+      { createdAt: "2025-05-01T08:05:00Z", value: 100 }
+    ])
+    .expect(201);
+
+  const res = await request(app)
+    .get(`${prefix}/networks/${net}/outliers`)
+    .set("Authorization", `Bearer ${token}`)
+    .query({
+      startDate: "2025-05-01T08:00:00Z",
+      endDate:   "2025-05-01T08:06:00Z"
+    })
+    .expect(200);
+
+  expect(Array.isArray(res.body)).toBe(true);
+  const out = res.body.find((r: any) => r.sensorMacAddress === sensorMac);
+  expect(out).toBeDefined();
+  expect(Array.isArray(out.measurements)).toBe(true);
+  expect(out.measurements).toContainEqual(
+    expect.objectContaining({ value: 100 })
+  );
+  expect(out).toHaveProperty("stats.mean");
+  expect(out).toHaveProperty("stats.variance");
+});
+
+
 });
