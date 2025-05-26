@@ -212,11 +212,19 @@ paths:
         content:
           application/json:
             schema:
-              allOf:
-                - $ref: "#/components/schemas/User"
-                - type: object
-                  required: [username, password, type]
-
+              type: object
+              required: [username, password, type]
+              properties:
+                username:
+                  type: string
+                  description: Unique username
+                  example: s0123465
+                password:
+                  type: string
+                  description: Password for the user account
+                  example: "FR90!5g@+ni"
+                type:
+                  $ref: "#/components/schemas/UserType"
       responses:
         "201":
           description: User created
@@ -441,10 +449,26 @@ paths:
         content:
           application/json:
             schema:
-              allOf:
-                - $ref: "#/components/schemas/Network"
-                - type: object
-                  required: [code]
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  minLength: 1
+                  description: Alphanumeric unique identifier for the network
+                  example: NET01
+                name:
+                  type: string
+                  description: Name of the network
+                  example: Alp Monitor
+                description:
+                  type: string
+                  description: Description of the network
+                  example: Alpine Weather Monitoring Network
+                gateways:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Gateway"
             example:
               code: "NET01"
               name: "Alp Monitor"
@@ -772,10 +796,26 @@ paths:
         content:
           application/json:
             schema:
-              allOf:
-                - $ref: "#/components/schemas/Gateway"
-                - type: object
-                  required: [macAddress]
+              type: object
+              required: [macAddress]
+              properties:
+                macAddress:
+                  type: string
+                  minLength: 1
+                  description: MAC address of the gateway
+                  example: 00:11:22:33:44:55
+                name:
+                  type: string
+                  description: Name of the gateway
+                  example: Main Gateway
+                description:
+                  type: string
+                  description: Description of the gateway
+                  example: Gateway at main site
+                sensors:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Sensor"
             example:
               macAddress: "94:3F:BE:4C:4A:79"
               name: "GW01"
@@ -1136,10 +1176,30 @@ paths:
         content:
           application/json:
             schema:
-              allOf:
-                - $ref: "#/components/schemas/Sensor"
-                - type: object
-                  required: [macAddress]
+              type: object
+              required: [macAddress]
+              properties:
+                macAddress:
+                  type: string
+                  minLength: 1
+                  description: MAC address of the sensor
+                  example: 00:11:22:33:44:66
+                name:
+                  type: string
+                  description: Name of the sensor
+                  example: TH01
+                description:
+                  type: string
+                  description: Description of the sensor
+                  example: External thermometer
+                variable:
+                  type: string
+                  description: Variable measured by the sensor
+                  example: temperature
+                unit:
+                  type: string
+                  description: Measurement unit
+                  example: C
       responses:
         "201":
           description: Sensor created
@@ -1480,6 +1540,16 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Measurements"
+        "400":
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorDTO"
+              example:
+                code: "400"
+                name: "BadRequest"
+                message: "request/query/startDate must match format 'date-time'"
         "401":
           description: Unauthorized
           content:
@@ -1570,6 +1640,16 @@ paths:
                     variance: 7.56
                     upperThreshold: 28.95
                     lowerThreshold: 17.95
+        "400":
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorDTO"
+              example:
+                code: "400"
+                name: "BadRequest"
+                message: "request/query/startDate must match format 'date-time'"
         "401":
           description: Unauthorized
           content:
@@ -1667,6 +1747,16 @@ paths:
                     - createdAt: "2025-02-18T16:00:00Z"
                       value: 12.34
                       isOutlier: true
+        "400":
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorDTO"
+              example:
+                code: "400"
+                name: "BadRequest"
+                message: "request/query/startDate must match format 'date-time'"
         "401":
           description: Unauthorized
           content:
@@ -1851,6 +1941,16 @@ paths:
                   - createdAt: "2025-02-18T16:00:00Z"
                     value: 25.34
                     isOutlier: false
+        "400":
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorDTO"
+              example:
+                code: "400"
+                name: "BadRequest"
+                message: "request/query/startDate must match format 'date-time'"
         "401":
           description: Unauthorized
           content:
@@ -1939,6 +2039,16 @@ paths:
                 variance: 7.56
                 upperThreshold: 28.95
                 lowerThreshold: 17.95
+        "400":
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorDTO"
+              example:
+                code: "400"
+                name: "BadRequest"
+                message: "request/query/startDate must match format 'date-time'"
         "401":
           description: Unauthorized
           content:
@@ -2036,6 +2146,16 @@ paths:
                   - createdAt: "2025-02-18T16:00:00Z"
                     value: 12.34
                     isOutlier: true
+        "400":
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorDTO"
+              example:
+                code: "400"
+                name: "BadRequest"
+                message: "request/query/startDate must match format 'date-time'"
         "401":
           description: Unauthorized
           content:
@@ -2196,11 +2316,11 @@ components:
           type: string
           format: date-time
           description: Timestamp of the measurement in **ISO 8601 format** with timezone
-          example: "2025-02-18T17:00:00+01:00"
+          example: "2025-02-18T16:00:00Z"
         value:
           type: number
           description: Value of the measurement
-          example: 1.8567
+          example: 21.8567
         isOutlier:
           type: boolean
           description: Value outside the range defined by the thresholds
@@ -2217,12 +2337,12 @@ components:
           type: string
           format: date-time
           description: Start date (in **ISO 8601 format** with timezone) for the calculation interval
-          example: "2025-02-18T16:00:00+01:00"
+          example: "2025-02-18T15:00:00Z"
         endDate:
           type: string
           format: date-time
           description: End date (in **ISO 8601 format** with timezone) for the calculation interval
-          example: "2025-02-18T18:00:00+01:00"
+          example: "2025-02-18T17:00:00Z"
         mean:
           type: number
           description: Mean (μ) of the measurements in the specified time interval
