@@ -163,8 +163,17 @@ export async function getOutlierMeasurements(
     );
 
     const payload = results.map((r) => ({
-      sensorMacAddress: r.sensorMacAddress,
-      stats:            r.stats,
+      sensorMac: r.sensorMacAddress,
+      stats: r.stats
+        ? {
+            startDate:      formatWithOffset(r.stats.startDate),
+            endDate:        formatWithOffset(r.stats.endDate),
+            mean:           r.stats.mean,
+            variance:       r.stats.variance,
+            upperThreshold: r.stats.upperThreshold,
+            lowerThreshold: r.stats.lowerThreshold,
+          }
+        : undefined,
       measurements: r.measurements.map((m) => ({
         createdAt: formatWithOffset(m.createdAt),
         value:     m.value,
