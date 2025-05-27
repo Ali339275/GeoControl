@@ -5,8 +5,7 @@ import { findOrThrowNotFound, throwConflictIfFound } from "@utils";
 import { Gateway } from "@models/dto/Gateway";
 import { GatewayDAO } from "@models/dao/GatewayDAO";
 import { SensorDAO } from "@models/dao/SensorDAO";
-import {Network as NetworkDTO} from "@dto/Network"
-
+import { Network as NetworkDTO } from "@dto/Network";
 
 export class NetworkRepository {
   private repo: Repository<NetworkDAO>;
@@ -17,13 +16,13 @@ export class NetworkRepository {
 
   getAllNetworks(): Promise<NetworkDAO[]> {
     return this.repo.find({
-    relations: ["gateways", "gateways.sensors"],
-  });
+      relations: ["gateways", "gateways.sensors"],
+    });
   }
 
   async getNetworkByCode(code: string): Promise<NetworkDAO> {
     return findOrThrowNotFound(
-      await this.repo.find({ where: { code: code }, relations: ["gateways", "gateways.sensors"] }),
+      await this.repo.find({ where: { code }, relations: ["gateways", "gateways.sensors"] }),
       () => true,
       `Network with code '${code}' not found`
     );
@@ -36,20 +35,18 @@ export class NetworkRepository {
     gateways: Array<Gateway>
   ): Promise<NetworkDAO> {
     throwConflictIfFound(
-      await this.repo.find({ where: { code: code } }),
+      await this.repo.find({ where: { code } }),
       () => true,
       `Network with code '${code}' already exists`
     );
 
     return this.repo.save({
-        code: code,
-        name: name,
-        description: description,
-        gateways: gateways
+      code,
+      name,
+      description,
+      gateways,
     });
   }
-
-
 
   async updateNetwork(oldCode: string, updatedNetwork: NetworkDTO): Promise<void> {
     if (!updatedNetwork.code || !updatedNetwork.name || !updatedNetwork.description) {
@@ -58,13 +55,11 @@ export class NetworkRepository {
 
     const existingNetwork = await this.getNetworkByCode(oldCode);
 
-
     const newNetwork = new NetworkDAO();
     newNetwork.code = updatedNetwork.code;
     newNetwork.name = updatedNetwork.name;
     newNetwork.description = updatedNetwork.description;
     newNetwork.gateways = [];
-
 
     for (const oldGateway of existingNetwork.gateways) {
       const newGateway = new GatewayDAO();
@@ -81,21 +76,22 @@ export class NetworkRepository {
         newSensor.variable = oldSensor.variable;
         newSensor.unit = oldSensor.unit;
         newSensor.gateway = newGateway;
-        newSensor.networkCode = updatedNetwork.code;
+        // Removed: newSensor.networkCode = updatedNetwork.code; (does not exist in SensorDAO)
         return newSensor;
       });
 
       newNetwork.gateways.push(newGateway);
     }
 
-
+    // Save new network with updated structure
     await this.repo.save(newNetwork);
 
+    // Remove old network by oldCode
     await this.repo.delete(oldCode);
   }
 
-
   async deleteNetwork(code: string): Promise<void> {
-    await this.repo.remove(await this.getNetworkByCode(code));
+    const network = await this.getNetworkByCode(code);
+    await this.repo.remove(network);
   }
 }

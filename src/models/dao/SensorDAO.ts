@@ -11,7 +11,6 @@ import { MeasurementsDAO } from './MeasurementsDAO';
 
 @Entity('sensor')
 export class SensorDAO {
-  [x: string]: any;
   @PrimaryColumn()
   macAddress: string;
 
@@ -27,11 +26,9 @@ export class SensorDAO {
   @Column()
   unit: string;
 
-  // store the gateway's macAddress as a foreign key
-  @Column()
+  @Column() // <-- Add this FK column explicitly
   gatewayId: string;
 
-  // set up the relation for proper JOINs
   @ManyToOne(() => GatewayDAO, (gateway) => gateway.sensors, {
     nullable: false,
     onDelete: 'CASCADE',
@@ -41,5 +38,4 @@ export class SensorDAO {
 
   @OneToMany(() => MeasurementsDAO, (grp) => grp.sensor)
   measurementsGroup: MeasurementsDAO[];
-
 }

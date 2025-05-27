@@ -24,16 +24,14 @@ export async function createSensorService(
   gatewayMac: string,
   sensorDto: Sensor
 ): Promise<SensorDAO> {
-  // Instantiate the DAO class
   const dao = new SensorDAO();
   dao.macAddress  = sensorDto.macAddress;
   dao.name        = sensorDto.name;
   dao.description = sensorDto.description;
   dao.variable    = sensorDto.variable;
   dao.unit        = sensorDto.unit;
-  // gatewayId is the FK column; we'll let the repo fill in gateway relation
-  dao.gatewayId   = "";
-
+  // Removed dao.gatewayId assignment as it doesn't exist on SensorDAO
+  
   return sensorRepo.createSensor(networkCode, gatewayMac, dao);
 }
 

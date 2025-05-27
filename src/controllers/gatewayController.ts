@@ -37,7 +37,7 @@ export async function updateGateway(req: Request, res: Response, next: NextFunct
     const { networkCode, macAddress } = req.params;
     const updatedGatewayData = req.body; // Assuming body contains updated Gateway data
     const gateway = await updateGatewayService(networkCode, macAddress, updatedGatewayData);
-    res.status(200).json(gateway);
+    res.status(204).send();
   } catch (error) {
     next(error);
   }

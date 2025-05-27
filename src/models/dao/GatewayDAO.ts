@@ -1,36 +1,38 @@
-import { Entity, PrimaryColumn, Column, ManyToOne, OneToMany } from "typeorm";
-import { NetworkDAO } from "@models/dao/NetworkDAO";
-import { SensorDAO } from "./SensorDAO";
+import {
+  Entity,
+  PrimaryColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+  Index,
+} from 'typeorm';
+import { NetworkDAO } from '@models/dao/NetworkDAO';
+import { SensorDAO } from './SensorDAO';
 
-@Entity("gatways")
-export class GatewayDAO{
+@Entity('gateways')
+export class GatewayDAO {
+  @PrimaryColumn({ nullable: false })
+  @Index()
+  macAddress: string;
 
-    @PrimaryColumn({nullable: false})
-    macAddress: string
+  @Column({ nullable: false })
+  name: string;
 
-    @Column({nullable: false})
-    name: string
+  @Column({ nullable: false })
+  description: string;
 
-    @Column({nullable: false})
-    description: string
+  @ManyToOne(() => NetworkDAO, (network) => network.gateways, {
+    nullable: false,
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  @JoinColumn({ name: 'networkCode', referencedColumnName: 'code' }) // optional
+  network: NetworkDAO;
 
-    @ManyToOne(() => NetworkDAO, (network) => network.gateways, {
-        nullable: false,
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE',
-    })
-    network: NetworkDAO;
-
-    @OneToMany(() => SensorDAO, (sensor) => sensor.gateway)
-    sensors: SensorDAO[];
-
-
+  @OneToMany(() => SensorDAO, (sensor) => sensor.gateway, {
+    cascade: true,
+    eager: true, // if you want sensors fetched automatically
+  })
+  sensors: SensorDAO[];
 }
-
-export class Gateway {
-    macAddress: string;
-    name: string;
-    description: string;
-    sensors?: any[];
-  }
-  
