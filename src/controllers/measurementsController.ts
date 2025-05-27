@@ -10,14 +10,12 @@ import {
   getStatisticsForSingleSensor,
   getOutliersForSingleSensor,
 } from "@services/measurementsService";
-import { toZonedTime, format } from "date-fns-tz";
 import { getAllGatewaysService } from "@services/gatewayService";
 import { getAllSensorsService }  from "@services/SensorService"; 
-const TIME_ZONE = "Europe/Rome";
 
 function formatWithOffset(date: Date): string {
-  const zoned = toZonedTime(date, TIME_ZONE);
-  return format(zoned, "yyyy-MM-dd'T'HH:mm:ssXXX", { timeZone: TIME_ZONE });
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return d.toISOString().replace(/\.\d{3}Z$/, 'Z');
 }
 
 function normalizeSensorMacs(raw: string | string[] | undefined): string[] {
