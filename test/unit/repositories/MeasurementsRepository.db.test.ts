@@ -120,4 +120,53 @@ describe("MeasurementsRepository: SQLite in-memory", () => {
       ])
     ).rejects.toThrow(NotFoundError);
   });
+
+
+ it("getMeasurementsForSingleSensor: returns measurements and computed stats", async () => {
+  await setupNetworkGatewaySensor();
+  await measRepo.storeMeasurements("NET1", "GW1", "MAC1", [
+    { createdAt: new Date("2024-01-01T10:00:00Z"), value: 100 },
+    { createdAt: new Date("2024-01-01T11:00:00Z"), value: 200 }
+  ]);
+  const result = await measRepo.getMeasurementsForSingleSensor(
+    "NET1", "GW1", "MAC1",
+    "2024-01-01T00:00:00Z", "2024-01-02T00:00:00Z"
+  );
+  expect(result.sensorMacAddress).toBe("MAC1");
+  expect(result.measurements).toHaveLength(2);
+  expect(result.stats).not.toBeNull();
+  expect(result.stats?.mean).toBe(150);
+  expect(result.stats?.variance).toBe(2500);
+});
+
+it("getStatisticsForSingleSensor: returns only stats object", async () => {
+  await setupNetworkGatewaySensor();
+  await measRepo.storeMeasurements("NET1", "GW1", "MAC1", [
+    { createdAt: new Date("2024-01-01T10:00:00Z"), value: 10 },
+    { createdAt: new Date("2024-01-01T12:00:00Z"), value: 30 }
+  ]);
+  const stats = await measRepo.getStatisticsForSingleSensor(
+    "NET1", "GW1", "MAC1",
+    "2024-01-01T00:00:00Z", "2024-01-02T00:00:00Z"
+  );
+  expect(stats.sensorMac).toBe("MAC1");
+  expect(stats.stats?.mean).toBe(20);
+  expect(stats.stats?.variance).toBe(100);
+});
+
+it("getOutliersForSingleSensor: returns empty array if no outliers", async () => {
+  await setupNetworkGatewaySensor();
+  await measRepo.storeMeasurements("NET1", "GW1", "MAC1", [
+    { createdAt: new Date("2024-01-01T10:00:00Z"), value: 50 },
+    { createdAt: new Date("2024-01-01T11:00:00Z"), value: 60 }
+  ]);
+  const out = await measRepo.getOutliersForSingleSensor(
+    "NET1", "GW1", "MAC1",
+    "2024-01-01T00:00:00Z", "2024-01-02T00:00:00Z"
+  );
+  expect(out.sensorMacAddress).toBe("MAC1");
+  expect(Array.isArray(out.measurements)).toBe(true);
+  expect(out.measurements).toHaveLength(0);
+  expect(out.stats).toBeDefined();
+});
 });

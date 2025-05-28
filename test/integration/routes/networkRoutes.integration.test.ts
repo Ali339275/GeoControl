@@ -133,4 +133,73 @@ describe("NetworkRoutes integration", () => {
     expect(response.status).toBe(403);
     expect(response.body.message).toMatch(/Insufficient rights/);
   });
+  // 400 BadRequest on create - missing name
+  it("POST /api/v1/networks - 400 if name missing", async () => {
+    (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
+    const response = await request(app)
+      .post("/api/v1/networks")
+      .set("Authorization", token)
+      .send({ code: "CODE1", description: "Desc" });
+    expect(response.status).toBe(400);
+    expect(response.body.message).toMatch(/required property name/);
+  });
+
+  // 400 BadRequest on create - missing code
+  it("POST /api/v1/networks - 400 if code missing", async () => {
+    (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Operator });
+    const response = await request(app)
+      .post("/api/v1/networks")
+      .set("Authorization", token)
+      .send({ name: "Name1", description: "Desc" });
+    expect(response.status).toBe(400);
+    expect(response.body.message).toMatch(/required property code/);
+  });
+
+  // 400 BadRequest on create - missing description
+  it("POST /api/v1/networks - 400 if description missing", async () => {
+    (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
+    const response = await request(app)
+      .post("/api/v1/networks")
+      .set("Authorization", token)
+      .send({ code: "CODE2", name: "Name2" });
+    expect(response.status).toBe(400);
+    expect(response.body.message).toMatch(/required property description/);
+  });
+
+  // 400 BadRequest on update - missing body.name
+  it("PATCH /api/v1/networks/:code - 400 if name missing", async () => {
+    (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Operator });
+    const response = await request(app)
+      .patch("/api/v1/networks/NET1")
+      .set("Authorization", token)
+      .send({ code: "NET1", description: "Desc1" });
+    expect(response.status).toBe(400);
+    expect(response.body.message).toMatch(/required property name/);
+  });
+
+  // 404 Not Found on get specific network
+  it("GET /api/v1/networks/:code - 404 when not found", async () => {
+    (authService.processToken as jest.Mock).mockResolvedValue(undefined);
+    (networkController.getNetwork as jest.Mock).mockImplementation(() => {
+      throw new (require("@models/errors/NotFoundError").NotFoundError)("Network not found");
+    });
+    const response = await request(app)
+      .get("/api/v1/networks/UNKNOWN")
+      .set("Authorization", token);
+    expect(response.status).toBe(404);
+    expect(response.body.message).toMatch(/Network not found/);
+  });
+
+  // 404 Not Found on delete
+  it("DELETE /api/v1/networks/:code - 404 when delete missing", async () => {
+    (authService.processToken as jest.Mock).mockResolvedValue({ type: UserType.Admin });
+    (networkController.deleteNetwork as jest.Mock).mockImplementation(() => {
+      throw new (require("@models/errors/NotFoundError").NotFoundError)("Cannot delete");
+    });
+    const response = await request(app)
+      .delete("/api/v1/networks/UNKNOWN")
+      .set("Authorization", token);
+    expect(response.status).toBe(404);
+    expect(response.body.message).toMatch(/Cannot delete/);
+  });
 });

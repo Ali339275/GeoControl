@@ -92,7 +92,6 @@ describe("Measurements E2E", () => {
         .query({ startDate, endDate })
         .set("Authorization", `Bearer ${token}`);
 
-    console.log(res.body)
 
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
@@ -103,6 +102,8 @@ describe("Measurements E2E", () => {
     expect(first.stats).toHaveProperty("mean");
     expect(first.stats).toHaveProperty("variance");
   });
+
+
   it("should return outliers [GET /networks/:networkCode/outliers]", async () => {
   const net = "NET_TEST";
 
@@ -117,7 +118,7 @@ describe("Measurements E2E", () => {
       { createdAt: "2025-05-01T08:02:00Z", value: 0 },
       { createdAt: "2025-05-01T08:03:00Z", value: 0 },
       { createdAt: "2025-05-01T08:04:00Z", value: 0 },
-      { createdAt: "2025-05-01T08:05:00Z", value: 100 }
+      { createdAt: "2025-05-01T08:05:00Z", value: 100, isOutlier: true }
     ])
     .expect(201);
 
@@ -131,7 +132,7 @@ describe("Measurements E2E", () => {
     .expect(200);
 
   expect(Array.isArray(res.body)).toBe(true);
-  const out = res.body.find((r: any) => r.sensorMacAddress === sensorMac);
+  const out = res.body.find((r: any) => r.sensorMac === sensorMac);
   expect(out).toBeDefined();
   expect(Array.isArray(out.measurements)).toBe(true);
   expect(out.measurements).toContainEqual(
@@ -141,5 +142,71 @@ describe("Measurements E2E", () => {
   expect(out).toHaveProperty("stats.variance");
 });
 
+it("should retrieve measurements for a specific sensor [GET /networks/:networkCode/gateways/:gatewayMac/sensors/:sensorMac/measurements]", async () => {
+  const res = await request(app)
+    .get(`${prefix}/networks/NET_TEST/gateways/${gatewayMac}/sensors/${sensorMac}/measurements`)
+    .set("Authorization", `Bearer ${token}`)
+    .query({
+      startDate: measurementTimestamp,
+      endDate:   measurementTimestamp,
+    });
+
+  expect(res.status).toBe(200);
+  expect(res.body).toHaveProperty("sensorMacAddress", sensorMac);
+  expect(Array.isArray(res.body.measurements)).toBe(true);
+  expect(res.body.measurements[0]).toHaveProperty("value", 42.5);
+});
+
+it("should retrieve statistics for a specific sensor [GET /networks/:networkCode/gateways/:gatewayMac/sensors/:sensorMac/stats]", async () => {
+  const startDate = new Date(new Date(measurementTimestamp).getTime() - 1000).toISOString();
+  const endDate   = new Date(new Date(measurementTimestamp).getTime() + 1000).toISOString();  
+
+  const res = await request(app)
+    .get(`${prefix}/networks/NET_TEST/gateways/${gatewayMac}/sensors/${sensorMac}/stats`)
+    .set("Authorization", `Bearer ${token}`)
+    .query({ startDate, endDate });
+
+
+  expect(res.status).toBe(200);
+  expect(res.body).toHaveProperty("sensorMac", sensorMac);
+  expect(res.body).toHaveProperty("stats");
+  expect(res.body.stats).toHaveProperty("mean");
+  expect(res.body.stats).toHaveProperty("variance");
+});
+
+it("should return outliers for a specific sensor [GET /networks/:networkCode/gateways/:gatewayMac/sensors/:sensorMac/outliers]", async () => {
+  // seed some additional outlier values
+  await request(app)
+    .post(`${prefix}/networks/NET_TEST/gateways/${gatewayMac}/sensors/${sensorMac}/measurements`)
+    .set("Authorization", `Bearer ${token}`)
+    .send([
+      { createdAt: "2025-05-01T08:00:00Z", value: 0 },
+      { createdAt: "2025-05-01T08:01:00Z", value: 0 },
+      { createdAt: "2025-05-01T08:02:00Z", value: 0 },
+      { createdAt: "2025-05-01T08:03:00Z", value: 0 },
+      { createdAt: "2025-05-01T08:04:00Z", value: 0 },
+      { createdAt: "2025-05-01T08:05:00Z", value: 100, isOutlier: true }
+    ])
+    .expect(201);
+
+  const res = await request(app)
+    .get(`${prefix}/networks/NET_TEST/gateways/${gatewayMac}/sensors/${sensorMac}/outliers`)
+    .set("Authorization", `Bearer ${token}`)
+    .query({
+      startDate: "2025-05-01T07:59:00Z",
+      endDate:   "2025-05-01T08:06:00Z"
+    });
+
+    console.log(res.body.measurements)
+
+  expect(res.status).toBe(200);
+  expect(res.body).toHaveProperty("sensorMacAddress", sensorMac);
+  expect(Array.isArray(res.body.measurements)).toBe(true);
+  expect(res.body.measurements).toContainEqual(
+    expect.objectContaining({ value: 100 })
+  );
+  expect(res.body).toHaveProperty("stats.mean");
+  expect(res.body).toHaveProperty("stats.variance");
+});
 
 });

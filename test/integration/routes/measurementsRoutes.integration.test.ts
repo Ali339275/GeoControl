@@ -133,4 +133,142 @@ describe("MeasurementsRoutes integration", () => {
     expect(response.status).toBe(403);
     expect(response.body.message).toMatch(/Forbidden/);
   });
+
+
+ 
+  it("GET /api/v1/networks/:networkCode/outliers - should return outliers", async () => {
+    const networkCode = "NET123";
+    const mockOutliers = [
+      {
+        sensorMacAddress: "MAC1",
+        stats: {
+          startDate:    "2024-01-01T00:00:00+01:00",
+          endDate:      "2024-01-31T23:59:59+01:00",
+          mean:         30,
+          variance:     9,
+          upperThreshold: 33,
+          lowerThreshold: 27
+        },
+        measurements: [
+          { createdAt: "2024-01-15T12:00:00+01:00", value: 35, isOutlier: true }
+        ]
+      }
+    ];
+
+    (authService.processToken as jest.Mock).mockResolvedValue(undefined);
+    (measurementsController.getOutlierMeasurements as jest.Mock).mockImplementation((req, res) =>
+      res.status(200).json(mockOutliers)
+    );
+
+    const response = await request(app)
+      .get(`/api/v1/networks/${networkCode}/outliers`)
+      .query({
+        sensorMacs: "MAC1",
+        startDate:  "2024-01-01",
+        endDate:    "2024-01-31"
+      })
+      .set("Authorization", token);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(mockOutliers);
+    expect(measurementsController.getOutlierMeasurements).toHaveBeenCalled();
+  });
+
+
+  it("GET /api/v1/networks/:networkCode/gateways/:gatewayMac/sensors/:sensorMac/measurements - should return sensor-level measurements", async () => {
+    const networkCode = "NET123";
+    const gatewayMac  = "GW1";
+    const sensorMac   = "MAC1";
+    const mockSensorMeas = {
+      sensorMacAddress: sensorMac,
+      stats: {
+        startDate:      "2024-02-01T00:00:00+01:00",
+        endDate:        "2024-02-28T23:59:59+01:00",
+        mean:           50,
+        variance:       16,
+        upperThreshold: 58,
+        lowerThreshold: 42
+      },
+      measurements: [
+        { createdAt: "2024-02-15T12:00:00+01:00", value: 48, isOutlier: false }
+      ]
+    };
+
+    (authService.processToken as jest.Mock).mockResolvedValue(undefined);
+    (measurementsController.getMeasurementsForSensor as jest.Mock).mockImplementation((req, res) =>
+      res.status(200).json(mockSensorMeas)
+    );
+
+    const response = await request(app)
+      .get(`/api/v1/networks/${networkCode}/gateways/${gatewayMac}/sensors/${sensorMac}/measurements`)
+      .query({ startDate: "2024-02-01", endDate: "2024-02-28" })
+      .set("Authorization", token);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(mockSensorMeas);
+    expect(measurementsController.getMeasurementsForSensor).toHaveBeenCalled();
+  });
+
+
+  it("GET /api/v1/networks/:networkCode/gateways/:gatewayMac/sensors/:sensorMac/stats - should return sensor-level stats", async () => {
+    const networkCode = "NET123";
+    const gatewayMac  = "GW1";
+    const sensorMac   = "MAC1";
+    const mockStats = {
+      sensorMac: sensorMac,
+      stats: {
+        startDate: "2024-03-01T00:00:00+01:00",
+        endDate:   "2024-03-31T23:59:59+01:00",
+        mean:      75,
+        variance:  25,
+        upperThreshold:  85,
+        lowerThreshold:  65
+      }
+    };
+
+    (authService.processToken as jest.Mock).mockResolvedValue(undefined);
+    (measurementsController.getStatisticsForSensor as jest.Mock).mockImplementation((req, res) =>
+      res.status(200).json(mockStats)
+    );
+
+    const response = await request(app)
+      .get(`/api/v1/networks/${networkCode}/gateways/${gatewayMac}/sensors/${sensorMac}/stats`)
+      .query({ startDate: "2024-03-01", endDate: "2024-03-31" })
+      .set("Authorization", token);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(mockStats);
+    expect(measurementsController.getStatisticsForSensor).toHaveBeenCalled();
+  });
+
+
+  it("GET /api/v1/networks/:networkCode/gateways/:gatewayMac/sensors/:sensorMac/outliers - should return sensor-level outliers", async () => {
+    const networkCode = "NET123";
+    const gatewayMac  = "GW1";
+    const sensorMac   = "MAC1";
+    const mockSensorOut = {
+      sensorMacAddress: sensorMac,
+      stats: {
+        mean: 100,
+        variance: 0
+      },
+      measurements: [
+        { createdAt: "2024-04-15T12:00:00+01:00", value: 150, isOutlier: true }
+      ]
+    };
+
+    (authService.processToken as jest.Mock).mockResolvedValue(undefined);
+    (measurementsController.getOutliersForSensor as jest.Mock).mockImplementation((req, res) =>
+      res.status(200).json(mockSensorOut)
+    );
+
+    const response = await request(app)
+      .get(`/api/v1/networks/${networkCode}/gateways/${gatewayMac}/sensors/${sensorMac}/outliers`)
+      .query({ startDate: "2024-04-01", endDate: "2024-04-30" })
+      .set("Authorization", token);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(mockSensorOut);
+    expect(measurementsController.getOutliersForSensor).toHaveBeenCalled();
+  });
 });

@@ -1,7 +1,12 @@
 import * as measurementsController from "@controllers/measurementsController";
 import * as measurementsService from "@services/measurementsService";
 import { Request, Response, NextFunction } from "express";
+import * as gatewayService from "@services/gatewayService";
+import * as sensorService  from "@services/SensorService";
 
+
+jest.mock("@services/gatewayService");
+jest.mock("@services/SensorService");
 jest.mock("@services/measurementsService");
 
 describe("MeasurementsController integration", () => {
@@ -62,7 +67,7 @@ describe("MeasurementsController integration", () => {
     expect(jsonArg[0].measurements[0].isOutlier).toBe(false);
   });
 
-  it("getStatistics: should return statistics from service", async () => {
+  it("getStatisticsPerNetwork: should return statistics from service", async () => {
     const req = {
       params: { networkCode: "NET123" },
       query: {
@@ -133,5 +138,121 @@ describe("MeasurementsController integration", () => {
 
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith({ message: "Measurement created" });
+  });
+
+  it("getOutlierMeasurements: should return outliers per sensor", async () => {
+    const req = {
+      params: { networkCode: "NET123" },
+      query: {
+        sensorMacs: "ABC123",
+        startDate:  "2024-01-01T00:00:00Z",
+        endDate:    "2024-01-31T23:59:59Z"
+      }
+    } as unknown as Request;
+    const res = mockResponse();
+
+    (gatewayService.getAllGatewaysService as jest.Mock).mockResolvedValue([
+      { macAddress: "GW1" }
+    ]);
+    (sensorService.getAllSensorsService as jest.Mock).mockResolvedValue([
+      { macAddress: "ABC123", gatewayMac: "GW1" }
+    ]);
+
+    // stub outlier-per-sensor service
+    const fakeOutlier = {
+      sensorMacAddress: "ABC123",
+      stats: {
+        startDate: new Date("2024-01-01T00:00:00Z"),
+        endDate:   new Date("2024-01-31T23:59:59Z"),
+        mean: 10,
+        variance: 4,
+        upperThreshold: 12,
+        lowerThreshold: 8
+      },
+      measurements: [{ createdAt: new Date("2024-01-15T12:00:00Z"), value: 12, isOutlier: true }]
+    };
+    (measurementsService.getOutliersForSingleSensor as jest.Mock).mockResolvedValue(fakeOutlier);
+
+    await measurementsController.getOutlierMeasurements(req, res, mockNext);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith([{
+      sensorMac: fakeOutlier.sensorMacAddress,
+      stats:     expect.any(Object),
+      measurements: expect.any(Array)
+    }]);
+  });
+
+  it("getMeasurementsForSensor: should return a sensor's measurements", async () => {
+    const req = {
+      params: { networkCode: "NET123", gatewayMac: "GW1", sensorMac: "ABC123" },
+      query: { startDate: "2024-01-01T00:00:00Z", endDate: "2024-01-31T23:59:59Z" }
+    } as unknown as Request;
+    const res = mockResponse();
+
+    const fakeSingle = {
+      sensorMacAddress: "ABC123",
+      stats: {
+        startDate: new Date("2024-01-01T00:00:00Z"),
+        endDate:   new Date("2024-01-31T23:59:59Z"),
+        mean: 10,
+        variance: 4,
+        upperThreshold: 12,
+        lowerThreshold: 8
+      },
+      measurements: [
+        { createdAt: new Date("2024-01-15T12:00:00Z"), value: 10, isOutlier: false }
+      ]
+    };
+    (measurementsService.getMeasurementsForSingleSensor as jest.Mock).mockResolvedValue(fakeSingle);
+
+    await measurementsController.getMeasurementsForSensor(req, res, mockNext);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      sensorMacAddress: fakeSingle.sensorMacAddress,
+      stats:            expect.any(Object),
+      measurements:     expect.any(Array)
+    });
+  });
+
+  it("getStatisticsForSensor: should return a sensor's stats only", async () => {
+    const req = {
+      params: { networkCode: "NET123", gatewayMac: "GW1", sensorMac: "ABC123" },
+      query: { startDate: "2024-01-01T00:00:00Z", endDate: "2024-01-31T23:59:59Z" }
+    } as unknown as Request;
+    const res = mockResponse();
+
+    const fakeStats = { sensorMac: "ABC123", stats: { mean: 10, variance: 4 } };
+    (measurementsService.getStatisticsForSingleSensor as jest.Mock).mockResolvedValue(fakeStats);
+
+    await measurementsController.getStatisticsForSensor(req, res, mockNext);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(fakeStats);
+  });
+
+  it("getOutliersForSensor: should return a sensor's outliers only", async () => {
+    const req = {
+      params: { networkCode: "NET123", gatewayMac: "GW1", sensorMac: "ABC123" },
+      query: { startDate: "2024-01-01T00:00:00Z", endDate: "2024-01-31T23:59:59Z" }
+    } as unknown as Request;
+    const res = mockResponse();
+
+    const fakeSingleOut = {
+      sensorMacAddress: "ABC123",
+      stats:            { mean: 10, variance: 4 },
+      measurements:     [{ createdAt: new Date("2024-01-15T12:00:00Z"), value: 12, isOutlier: true }]
+    };
+    (measurementsService.getOutliersForSingleSensor as jest.Mock).mockResolvedValue(fakeSingleOut);
+
+    await measurementsController.getOutliersForSensor(req, res, mockNext);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      sensorMacAddress: fakeSingleOut.sensorMacAddress,
+      stats:            fakeSingleOut.stats,
+      measurements:     expect.any(Array)
+    });
   });
 });

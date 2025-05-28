@@ -340,10 +340,11 @@ export class MeasurementsRepository {
             sensorMacAddress: sensorMac,
             stats: measurementData.stats,
             measurements: measurementData.measurements
-                .filter(m => m.isOutlier)
+                .filter(m => m.isOutlier === true)
                 .map(m => ({
-                    ...m,
-                    createdAt: toUTCString(m.createdAt)
+                    createdAt: toUTCString(m.createdAt),
+                    value: m.value,
+                    isOutlier: m.isOutlier 
                 }))
         };
     }
