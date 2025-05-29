@@ -103,6 +103,5 @@ After running `npm test -- --coverage`, Jest reported:
 | Functions   | 90.00% |
 | Lines       | 90.73% |
 
-Uncovered lines are detailed per file in the raw coverage report (see `/coverage/lcov-report/index.html`).
 
 ![Coverage Screenshot](assets/Test.png)
