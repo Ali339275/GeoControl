@@ -147,4 +147,4 @@ After running `npm test -- --coverage`, Jest reported:
 | Lines       | 90.73% |
 
 
-![Coverage Screenshot](assets/Test.png)
+![Coverage Screenshot](assets/updatedTest.png)
