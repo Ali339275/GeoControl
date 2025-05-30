@@ -141,10 +141,10 @@ After running `npm test -- --coverage`, Jest reported:
 
 | Metric      | %      |
 |:-----------:|:------:|
-| Statements  | 90.38% |
-| Branches    | 63.26% |
-| Functions   | 90.00% |
-| Lines       | 90.73% |
+| Statements  | 92.71% |
+| Branches    | 75.51% |
+| Functions   | 94.37% |
+| Lines       | 92.97% |
 
 
 ![Coverage Screenshot](assets/updatedTest.png)
