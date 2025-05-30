@@ -69,15 +69,57 @@ We adopted a **mixed (bottom-up then top-down)** strategy:
 
 # Tests
 
-| Test case name             | Object(s) tested                             | Test level  | Technique                      |
-|:--------------------------:|:---------------------------------------------:|:-----------:|:------------------------------:|
-| Utils functions            | `utils.ts`                                    | Unit        | White-box (statement)          |
-| Repository CRUD operations | Each `*Repository.ts`                         | Unit        | White-box (branch)             |
-| Service business logic     | Each `*Service.ts`                            | Unit        | White-box (branch)             |
-| Controller methods         | Each `*Controller.ts`                         | Integration | Black-box (equivalence)        |
-| Route endpoints            | All `*.ts` in `src/routes`                    | API         | Black-box (boundary)           |
-| Middleware error handling  | `authMiddleware.ts`/`errorMiddleware.ts`      | Integration | White-box (statement)          |
-| Postman API collection     | Full REST suite                               | API         | Black-box (scenario)           |
+## User Repository Tests
+
+| Test ID | Test case name                   | Object(s) tested      | Test level | Technique used        |
+|:-------:|:--------------------------------:|:---------------------:|:----------:|:---------------------:|
+| T1      | create user                      | createUser method     | Unit       | WB/Statement Coverage |
+| T2      | create user: conflict            | createUser method     | Unit       | WB/Statement Coverage |
+| T3      | find user by username            | getUserByUsername     | Unit       | WB/Statement Coverage |
+| T4      | find user by username: not found | getUserByUsername     | Unit       | WB/Statement Coverage |
+| T5      | get all users                    | getAllUsers           | Unit       | WB/Statement Coverage |
+| T6      | delete user                      | deleteUser method     | Unit       | WB/Statement Coverage |
+
+## Gateway Repository Tests
+
+| Test ID | Test case name                     | Object(s) tested        | Test level | Technique used        |
+|:-------:|:----------------------------------:|:-----------------------:|:----------:|:---------------------:|
+| T1      | create gateway                     | createGateway method    | Unit       | WB/Statement Coverage |
+| T2      | create gateway: conflict           | createGateway method    | Unit       | WB/Statement Coverage |
+| T3      | find gateway by ID                 | getGatewayById          | Unit       | WB/Statement Coverage |
+| T4      | get all gateways                   | getAllGateways          | Unit       | WB/Statement Coverage |
+| T5      | delete gateway                     | deleteGateway method    | Unit       | WB/Statement Coverage |
+
+## Network Repository Tests
+
+| Test ID | Test case name                   | Object(s) tested       | Test level | Technique used        |
+|:-------:|:--------------------------------:|:----------------------:|:----------:|:---------------------:|
+| T1      | create network                   | createNetwork method   | Unit       | WB/Statement Coverage |
+| T2      | create network: conflict         | createNetwork method   | Unit       | WB/Statement Coverage |
+| T3      | find network by ID               | getNetworkById         | Unit       | WB/Statement Coverage |
+| T4      | get all networks                 | getAllNetworks         | Unit       | WB/Statement Coverage |
+| T5      | delete network                   | deleteNetwork method   | Unit       | WB/Statement Coverage |
+
+## Measurements Repository Tests
+
+| Test ID | Test case name                   | Object(s) tested         | Test level | Technique used        |
+|:-------:|:--------------------------------:|:------------------------:|:----------:|:---------------------:|
+| T1      | create measurement               | createMeasurement method | Unit       | WB/Statement Coverage |
+| T2      | create measurement: conflict     | createMeasurement method | Unit       | WB/Statement Coverage |
+| T3      | find measurement by ID           | getMeasurementById       | Unit       | WB/Statement Coverage |
+| T4      | get measurements by sensor ID    | findBySensorId           | Unit       | WB/Statement Coverage |
+| T5      | delete measurement               | deleteMeasurement method | Unit       | WB/Statement Coverage |
+
+## Sensor Repository Tests
+
+| Test ID | Test case name                   | Object(s) tested     | Test level | Technique used        |
+|:-------:|:--------------------------------:|:--------------------:|:----------:|:---------------------:|
+| T1      | create sensor                    | createSensor method  | Unit       | WB/Statement Coverage |
+| T2      | create sensor: conflict          | createSensor method  | Unit       | WB/Statement Coverage |
+| T3      | find sensor by ID                | getSensorById        | Unit       | WB/Statement Coverage |
+| T4      | get all sensors                  | getAllSensors        | Unit       | WB/Statement Coverage |
+| T5      | update sensor metadata           | updateSensor method  | Unit       | WB/Statement Coverage |
+
 
 # Coverage
 
