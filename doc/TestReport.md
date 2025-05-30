@@ -55,13 +55,14 @@ app.ts
 # Integration approach
 
 We adopted a **mixed (bottom-up then top-down)** strategy:
-
+- **Bottom-up (Steps 1–3):**
 1. **Step 1 (Unit tests):**  
    – Test each repository in isolation against an in-memory or test database.  
 2. **Step 2 (Unit tests):**  
    – Test service layer with mocked repositories.  
 3. **Step 3 (Integration tests):**  
-   – Wire up controllers to real database via the test-datasource and run controller methods.  
+   – Wire up controllers to real database via the test-datasource and run controller methods.
+- **Top-down (Steps 4–5):**
 4. **Step 4 (API tests):**  
    – Validate Express routes/endpoints using Supertest and Postman Collection.  
 5. **Step 5 (End-to-End):**  
