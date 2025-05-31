@@ -1,0 +1,72 @@
+import { AppDataSource } from "@database";
+import { Repository } from "typeorm";
+import { SensorDAO } from "@models/dao/SensorDAO";
+import { GatewayRepository } from "@repositories/GatewayRepository";
+import { findOrThrowNotFound, throwConflictIfFound } from "@utils";
+
+export class SensorRepository {
+  private repo: Repository<SensorDAO>;
+  private gatewayRepo = new GatewayRepository();
+
+  constructor() {
+    this.repo = AppDataSource.getRepository(SensorDAO);
+  }
+
+  async getAllSensors(
+    networkCode: string,
+    gatewayMac: string
+  ): Promise<SensorDAO[]> {
+    await this.gatewayRepo.getGateway(networkCode, gatewayMac);
+    return this.repo.find({ where: { gatewayId: gatewayMac } });
+  }
+
+  async getSensor(
+    networkCode: string,
+    gatewayMac: string,
+    sensorMac: string
+  ): Promise<SensorDAO> {
+    await this.gatewayRepo.getGateway(networkCode, gatewayMac);
+    const all = await this.repo.find({ where: { gatewayId: gatewayMac } });
+    return findOrThrowNotFound(
+      all,
+      (s) => s.macAddress === sensorMac,
+      `Sensor with MAC '${sensorMac}' not found`
+    );
+  }
+
+  async createSensor(
+    networkCode: string,
+    gatewayMac: string,
+    sensor: SensorDAO
+  ): Promise<SensorDAO> {
+    await this.gatewayRepo.getGateway(networkCode, gatewayMac);
+    const existing = await this.repo.find({ where: { gatewayId: gatewayMac } });
+    throwConflictIfFound(
+      existing,
+      (s) => s.macAddress === sensor.macAddress,
+      `Sensor with MAC '${sensor.macAddress}' already exists`
+    );
+    sensor.gatewayId = gatewayMac;
+    return this.repo.save(sensor);
+  }
+
+  async updateSensor(
+    networkCode: string,
+    gatewayMac: string,
+    sensorMac: string,
+    updated: Partial<SensorDAO>
+  ): Promise<SensorDAO> {
+    const sensor = await this.getSensor(networkCode, gatewayMac, sensorMac);
+    Object.assign(sensor, updated);
+    return this.repo.save(sensor);
+  }
+
+  async deleteSensor(
+    networkCode: string,
+    gatewayMac: string,
+    sensorMac: string
+  ): Promise<void> {
+    const sensor = await this.getSensor(networkCode, gatewayMac, sensorMac);
+    await this.repo.remove(sensor);
+  }
+}

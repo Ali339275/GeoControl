@@ -1,31 +1,48 @@
-import AppError from "@models/errors/AppError";
 import { Router } from "express";
+import {
+  getAllSensors,
+  getSensor,
+  createSensor,
+  updateSensor,
+  deleteSensor,
+} from "@controllers/SensorController";
+import { authenticateUser } from "@middlewares/authMiddleware";
+import { UserType } from "@models/UserType";
 
 const router = Router({ mergeParams: true });
 
-// Get all sensors (Any authenticated user)
-router.get("", (req, res, next) => {
-  throw new AppError("Method not implemented", 500);
-});
+// List sensors (any authenticated user)
+router.get("/", authenticateUser(), getAllSensors);
 
-// Create a new sensor (Admin & Operator)
-router.post("", (req, res, next) => {
-  throw new AppError("Method not implemented", 500);
-});
+// Get one sensor (any authenticated user)
+router.get("/:macAddress", authenticateUser(), getSensor);
 
-// Get a specific sensor (Any authenticated user)
-router.get("/:sensorMac", (req, res, next) => {
-  throw new AppError("Method not implemented", 500);
-});
+// Create sensor (Admin & Operator)
+router.post(
+  "/",
+  authenticateUser([UserType.Admin, UserType.Operator]),
+  createSensor
+);
 
-// Update a sensor (Admin & Operator)
-router.patch("/:sensorMac", (req, res, next) => {
-  throw new AppError("Method not implemented", 500);
-});
+// Update sensor (Admin & Operator) – full replace via PUT
+router.put(
+  "/:macAddress",
+  authenticateUser([UserType.Admin, UserType.Operator]),
+  updateSensor
+);
 
-// Delete a sensor (Admin & Operator)
-router.delete("/:sensorMac", (req, res, next) => {
-  throw new AppError("Method not implemented", 500);
-});
+// Update sensor (Admin & Operator) – partial update via PATCH
+router.patch(
+  "/:macAddress",
+  authenticateUser([UserType.Admin, UserType.Operator]),
+  updateSensor
+);
+
+// Delete sensor (Admin & Operator)
+router.delete(
+  "/:macAddress",
+  authenticateUser([UserType.Admin, UserType.Operator]),
+  deleteSensor
+);
 
 export default router;
