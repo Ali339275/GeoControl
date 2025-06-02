@@ -13,11 +13,10 @@ import {
 import { getAllGatewaysService } from "@services/gatewayService";
 import { getAllSensorsService }  from "@services/SensorService"; 
 
-function formatWithOffset(date: Date): string {
+function formatWithOffset(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toISOString().replace(/\.\d{3}Z$/, 'Z');
+  return d.toISOString();
 }
-
 function normalizeSensorMacs(raw: string | string[] | undefined): string[] {
   if (typeof raw === 'string') return [raw];
   if (Array.isArray(raw)) return raw;
