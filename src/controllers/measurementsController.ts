@@ -35,8 +35,14 @@ export async function getMeasurementsPerNetwork(
 ): Promise<void> {
   const networkCode = req.params.networkCode;
   const sensorMacs = normalizeSensorMacs(req.query.sensorMacs as any);
-  const startDate = normalizeDateParam(req.query.startDate);
-  const endDate = normalizeDateParam(req.query.endDate);
+  const startDate: string =
+  typeof req.query.startDate === "string"
+    ? normalizeDateParam(req.query.startDate)
+    : new Date(0).toISOString();
+  const endDate: string =
+  typeof req.query.endDate === "string"
+    ? normalizeDateParam(req.query.endDate)
+    : new Date().toISOString();
 
   try {
     const measurements = await getMeasPerNetwork(
