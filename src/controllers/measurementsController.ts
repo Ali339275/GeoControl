@@ -13,10 +13,11 @@ import {
 import { getAllGatewaysService } from "@services/gatewayService";
 import { getAllSensorsService }  from "@services/SensorService"; 
 
-function formatWithOffset(date: Date | string): string {
+function formatWithOffset(date: Date): string {
   const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toISOString();
+  return d.toISOString().replace(/\.\d{3}Z$/, 'Z');
 }
+
 function normalizeSensorMacs(raw: string | string[] | undefined): string[] {
   if (typeof raw === 'string') return [raw];
   if (Array.isArray(raw)) return raw;
@@ -35,14 +36,18 @@ export async function getMeasurementsPerNetwork(
 ): Promise<void> {
   const networkCode = req.params.networkCode;
   const sensorMacs = normalizeSensorMacs(req.query.sensorMacs as any);
-  const startDate: string =
-  typeof req.query.startDate === "string"
-    ? normalizeDateParam(req.query.startDate)
-    : new Date(0).toISOString();
-  const endDate: string =
-  typeof req.query.endDate === "string"
-    ? normalizeDateParam(req.query.endDate)
-    : new Date().toISOString();
+  // const startDate = normalizeDateParam(req.query.startDate);
+  // const endDate = normalizeDateParam(req.query.endDate);
+
+  const startDate =
+    typeof req.query.startDate === "string"
+      ? normalizeDateParam(req.query.startDate)
+      : new Date(0).toISOString();
+
+  const endDate =
+    typeof req.query.endDate === "string"
+      ? normalizeDateParam(req.query.endDate)
+      : new Date().toISOString();
 
   try {
     const measurements = await getMeasPerNetwork(
@@ -84,13 +89,19 @@ export async function getStatistics(
 ): Promise<void> {
   const networkCode = req.params.networkCode;
   const sensorMacs = normalizeSensorMacs(req.query.sensorMacs as any);
-  const startDate = typeof req.query.startDate === 'string'
-    ? normalizeDateParam(req.query.startDate)
-    : new Date(0).toISOString();
-  const endDate = typeof req.query.endDate === 'string'
-    ? normalizeDateParam(req.query.endDate)
-    : new Date().toISOString();
+  // const startDate = normalizeDateParam(req.query.startDate);
+  // const endDate = normalizeDateParam(req.query.endDate);
 
+  const startDate =
+    typeof req.query.startDate === "string"
+      ? normalizeDateParam(req.query.startDate)
+      : new Date(0).toISOString();
+
+  const endDate =
+    typeof req.query.endDate === "string"
+      ? normalizeDateParam(req.query.endDate)
+      : new Date().toISOString();
+      
   try {
     const stats = await getStatisticsPerSensorInNetwork(
       networkCode,
