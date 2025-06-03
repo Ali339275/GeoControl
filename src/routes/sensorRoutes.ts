@@ -11,38 +11,34 @@ import { UserType } from "@models/UserType";
 
 const router = Router({ mergeParams: true });
 
-// List sensors (any authenticated user)
-router.get("/", authenticateUser(), getAllSensors);
+router
+  .route("/")
+  .get(authenticateUser(), getAllSensors)
+  .post(
+    authenticateUser([UserType.Admin, UserType.Operator]),
+    createSensor
+  )
+  .all((req, res) => {
+    res.sendStatus(405);
+  });
 
-// Get one sensor (any authenticated user)
-router.get("/:macAddress", authenticateUser(), getSensor);
-
-// Create sensor (Admin & Operator)
-router.post(
-  "/",
-  authenticateUser([UserType.Admin, UserType.Operator]),
-  createSensor
-);
-
-// Update sensor (Admin & Operator) – full replace via PUT
-router.put(
-  "/:macAddress",
-  authenticateUser([UserType.Admin, UserType.Operator]),
-  updateSensor
-);
-
-// Update sensor (Admin & Operator) – partial update via PATCH
-router.patch(
-  "/:macAddress",
-  authenticateUser([UserType.Admin, UserType.Operator]),
-  updateSensor
-);
-
-// Delete sensor (Admin & Operator)
-router.delete(
-  "/:macAddress",
-  authenticateUser([UserType.Admin, UserType.Operator]),
-  deleteSensor
-);
+router
+  .route("/:macAddress")
+  .get(authenticateUser(), getSensor)
+  .put(
+    authenticateUser([UserType.Admin, UserType.Operator]),
+    updateSensor
+  )
+  .patch(
+    authenticateUser([UserType.Admin, UserType.Operator]),
+    updateSensor
+  )
+  .delete(
+    authenticateUser([UserType.Admin, UserType.Operator]),
+    deleteSensor
+  )
+  .all((req, res) => {
+    res.sendStatus(405);
+  });
 
 export default router;
