@@ -57,6 +57,42 @@ export class SensorRepository {
     updated: Partial<SensorDAO>
   ): Promise<SensorDAO> {
     const sensor = await this.getSensor(networkCode, gatewayMac, sensorMac);
+    const oldMac = sensor.macAddress;
+    if (updated.macAddress && updated.macAddress !== oldMac) {
+      const newMac = updated.macAddress;
+      await AppDataSource.getRepository("measurements")
+        .createQueryBuilder()
+        .update()
+        .set({ sensorMacAddress: newMac })
+        .where("sensorMacAddress = :oldMac", { oldMac })
+        .execute();
+      await this.repo
+        .createQueryBuilder()
+        .update(SensorDAO)
+        .set({ macAddress: newMac })
+        .where("macAddress = :oldMac AND gatewayId = :gatewayId", {
+          oldMac,
+          gatewayId: gatewayMac,
+        })
+        .execute();
+      await this.repo
+        .createQueryBuilder()
+        .update(SensorDAO)
+        .set({
+          ...(updated.name !== undefined && { name: updated.name }),
+          ...(updated.description !== undefined && { description: updated.description }),
+          ...(updated.variable !== undefined && { variable: updated.variable }),
+          ...(updated.unit !== undefined && { unit: updated.unit }),
+        })
+        .where("macAddress = :newMac AND gatewayId = :gatewayId", {
+          newMac,
+          gatewayId: gatewayMac,
+        })
+        .execute();
+      return this.repo.findOneOrFail({
+        where: { macAddress: newMac, gatewayId: gatewayMac },
+      });
+    }
     Object.assign(sensor, updated);
     return this.repo.save(sensor);
   }
