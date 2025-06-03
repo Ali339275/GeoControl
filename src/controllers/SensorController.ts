@@ -73,7 +73,7 @@ export async function updateSensor(
       macAddress,
       req.body
     );
-    res.status(200).json(updated);
+    res.sendStatus(204);
   } catch (err) {
     next(err);
   }
