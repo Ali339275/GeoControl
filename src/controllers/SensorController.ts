@@ -7,7 +7,7 @@ import {
   updateSensorService,
   deleteSensorService,
 } from "@services/SensorService";
-
+import { BadRequestError } from "@models/errors/BadRequestError";
 export async function getAllSensors(
   req: Request,
   res: Response,
@@ -48,7 +48,9 @@ export async function createSensor(
   const { networkCode, gatewayMac } = req.params;
   try {
     const sensorDto = SensorFromJSON(req.body);
-
+    if (!sensorDto.macAddress) {
+       throw new BadRequestError("macAddress is required");
+     }
     const created = await createSensorService(
       networkCode,
       gatewayMac,
@@ -67,12 +69,18 @@ export async function updateSensor(
 ): Promise<void> {
   const { networkCode, gatewayMac, macAddress } = req.params;
   try {
-    const updated = await updateSensorService(
-      networkCode,
-      gatewayMac,
-      macAddress,
-      req.body
-    );
+    const sensorDto = SensorFromJSON(req.body);
+
+     if (!sensorDto.macAddress) {
+       throw new BadRequestError("macAddress is required");
+     }
+
+     const updated = await updateSensorService(
+       networkCode,
+       gatewayMac,
+       macAddress,
+       sensorDto
+     );
     res.sendStatus(204);
   } catch (err) {
     next(err);

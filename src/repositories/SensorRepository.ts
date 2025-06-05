@@ -3,7 +3,8 @@ import { Repository } from "typeorm";
 import { SensorDAO } from "@models/dao/SensorDAO";
 import { GatewayRepository } from "@repositories/GatewayRepository";
 import { findOrThrowNotFound, throwConflictIfFound } from "@utils";
-
+import { MeasurementsDAO } from "@models/dao/MeasurementsDAO";
+import { MeasurementDAO } from "@models/dao/MeasurementDAO";
 export class SensorRepository {
   private repo: Repository<SensorDAO>;
   private gatewayRepo = new GatewayRepository();
@@ -58,6 +59,17 @@ export class SensorRepository {
   ): Promise<SensorDAO> {
     const sensor = await this.getSensor(networkCode, gatewayMac, sensorMac);
     const oldMac = sensor.macAddress;
+    if (updated.macAddress && updated.macAddress !== oldMac) {
+       const allSensors = await this.repo.find({
+         where: { gatewayId: gatewayMac },
+       });
+       const others = allSensors.filter((s) => s.macAddress !== oldMac);
+       throwConflictIfFound(
+         others,
+         (s) => s.macAddress === updated.macAddress,
+         `Sensor with MAC '${updated.macAddress}' already exists`
+       );
+     }
     if (updated.macAddress && updated.macAddress !== oldMac) {
       const newMac = updated.macAddress;
       await AppDataSource.getRepository("measurements")
