@@ -25,10 +25,7 @@ function normalizeSensorMacs(param: any): string[] {
 }
 
 function formatWithOffset(date: Date): string {
-  const tzOffsetMinutes = date.getTimezoneOffset();
-  const offsetMilliseconds = -tzOffsetMinutes * 60 * 1000;
-  const localDate = new Date(date.getTime() + offsetMilliseconds);
-  return localDate.toISOString().replace("Z", "");
+  return date.toISOString();
 }
 
 export async function getMeasurementsPerNetwork(
@@ -275,16 +272,12 @@ export async function getStatisticsForSensor(
     );
     res.status(200).json({
       sensorMacAddress: result.sensorMac,
-      stats: result.stats
-        ? {
-            startDate: formatWithOffset(new Date(result.stats.startDate)),
-            endDate: formatWithOffset(new Date(result.stats.endDate)),
-            mean: result.stats.mean,
-            variance: result.stats.variance,
-            upperThreshold: result.stats.upperThreshold,
-            lowerThreshold: result.stats.lowerThreshold,
-          }
-        : undefined,
+      startDate: formatWithOffset(new Date(result.stats.startDate)),
+      endDate: formatWithOffset(new Date(result.stats.endDate)),
+      mean: result.stats.mean,
+      variance: result.stats.variance,
+      upperThreshold: result.stats.upperThreshold,
+      lowerThreshold: result.stats.lowerThreshold,
     });
   } catch (err) {
     next(err);
