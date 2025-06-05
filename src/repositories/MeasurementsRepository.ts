@@ -170,6 +170,8 @@ export class MeasurementsRepository {
         const utcStartDate = parseInputDate(startDate);
         const utcEndDate = parseInputDate(endDate);
 
+        console.log(startDate, endDate)
+
         const measurementsGroups = await this.getMeasPerNetwork(
             networkCode,
             sensorMacs,
@@ -177,8 +179,19 @@ export class MeasurementsRepository {
             endDate
         );
 
+        console.log(measurementsGroups)
+
         return measurementsGroups.map(group => {
-            if (!group.stats) return { sensorMac: group.sensorMacAddress };
+            if (!group.stats) return { sensorMac: group.sensorMacAddress, 
+                stats: {
+                    startDate: toUTCString(group.stats.startDate),
+                    endDate: toUTCString(group.stats.endDate),
+                    mean: 0,
+                    variance: 0,
+                    upperThreshold: 0,
+                    lowerThreshold: 0
+                }
+             };
 
             return {
                 sensorMac: group.sensorMacAddress,
@@ -209,7 +222,7 @@ export class MeasurementsRepository {
             variance: number;
             upperThreshold: number;
             lowerThreshold: number;
-        } | null;
+        };
         measurements: {
             createdAt: Date;
             value: number;
@@ -234,37 +247,43 @@ export class MeasurementsRepository {
             .andWhere("s.macAddress = :sensorMac", { sensorMac })
             .getMany();
 
+
         if (!groups || groups.length === 0) {
             return { 
                 sensorMacAddress: sensorMac, 
-                stats: null, 
+                stats: {
+                    startDate: utcStartDate,
+                    endDate: utcEndDate,
+                    mean: 0,
+                    variance: 0,
+                    upperThreshold: 0,
+                    lowerThreshold: 0
+                }, 
                 measurements: [] 
             };
         }
-
         const group = groups[0];
         const filteredMeasurements = group.measurements.filter(meas => {
             const createdAt = toUTCDate(meas.createdAt);
             return createdAt >= utcStartDate && createdAt <= utcEndDate;
         });
 
+
         const values = filteredMeasurements.map(m => m.value);
-        let stats = null;
+        
+        const mean = values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0;
+        const variance = values.length > 0 ? values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length : 0;
+        const stdDev = Math.sqrt(variance);
 
-        if (values.length > 0) {
-            const mean = values.reduce((a, b) => a + b, 0) / values.length;
-            const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
-            const stdDev = Math.sqrt(variance);
 
-            stats = {
-                startDate: utcStartDate,
-                endDate: utcEndDate,
-                mean: parseFloat(mean.toFixed(2)),
-                variance: parseFloat(variance.toFixed(2)),
-                upperThreshold: parseFloat((mean + 2 * stdDev).toFixed(2)),
-                lowerThreshold: parseFloat((mean - 2 * stdDev).toFixed(2))
-            };
-        }
+        const stats = {
+            startDate: utcStartDate,
+            endDate: utcEndDate,
+            mean: mean,
+            variance: parseFloat(variance.toFixed(2)),
+            upperThreshold: parseFloat((mean + 2 * stdDev).toFixed(2)),
+            lowerThreshold: parseFloat((mean - 2 * stdDev).toFixed(2))
+        };
 
         return {
             sensorMacAddress: sensorMac,
@@ -272,9 +291,7 @@ export class MeasurementsRepository {
             measurements: filteredMeasurements.map(meas => ({
                 createdAt: toUTCDate(meas.createdAt),
                 value: parseFloat(meas.value.toFixed(4)),
-                isOutlier: stats !== null && 
-                          (meas.value > stats.upperThreshold || 
-                           meas.value < stats.lowerThreshold)
+                isOutlier: meas.value > stats.upperThreshold || meas.value < stats.lowerThreshold
             }))
         };
     }
@@ -335,7 +352,6 @@ export class MeasurementsRepository {
             startDate,
             endDate
         );
-
         return {
             sensorMacAddress: sensorMac,
             stats: measurementData.stats,

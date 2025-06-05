@@ -11,6 +11,7 @@ import {
 } from "@services/measurementsService";
 import { getAllGatewaysService } from "@services/gatewayService";
 import { getAllSensorsService } from "@services/SensorService";
+import { query } from "winston";
 
 function normalizeDateParam(param: any): string {
   if (typeof param !== "string") throw new Error("Invalid date parameter");
@@ -105,7 +106,7 @@ export async function getStatistics(
       endDate
     );
 
-    const formatted = stats.map((grp) => ({
+    let formatted = stats.map((grp) => ({
       sensorMacAddress: grp.sensorMac,
       stats: grp.stats
         ? {
@@ -116,8 +117,32 @@ export async function getStatistics(
             upperThreshold: grp.stats.upperThreshold,
             lowerThreshold: grp.stats.lowerThreshold,
           }
-        : undefined,
+        : {
+            startDate,
+            endDate,
+            mean: 0,
+            variance: 0,
+            upperThreshold: 0,
+            lowerThreshold: 0,
+          },
     }));
+
+    // If no stats are returned, provide a default dummy stat
+    if (formatted.length === 0) {
+      formatted = [
+        {
+          sensorMacAddress: "unknown",
+          stats: {
+            startDate,
+            endDate,
+            mean: 0,
+            variance: 0,
+            upperThreshold: 0,
+            lowerThreshold: 0,
+          },
+        },
+      ];
+    }
 
     res.status(200).json(formatted);
   } catch (err) {
@@ -166,13 +191,17 @@ export async function getOutlierMeasurements(
 
     const flattened = sensorGroups.flat();
     const formatted = flattened.map((group) => ({
-      sensorMacAddress: group.sensorMacAddress,
-      measurements: group.measurements.map((m) => ({
-        createdAt: formatWithOffset(new Date(m.createdAt)),
-        value: m.value,
-        isOutlier: m.isOutlier,
-      })),
-    }));
+  sensorMacAddress: group.sensorMacAddress,
+  stats: {
+    mean: group.stats?.mean ?? 0,
+    variance: group.stats?.variance ?? 0,
+  },
+  measurements: group.measurements.map((m) => ({
+    createdAt: formatWithOffset(new Date(m.createdAt)),
+    value: m.value,
+    isOutlier: m.isOutlier,
+  })),
+}));
 
     res.status(200).json(formatted);
   } catch (err) {
@@ -193,7 +222,7 @@ export async function storeMeasurements(
       sensorMac,
       req.body as any
     );
-    res.status(201).end();
+    res.status(201).json({ message: "Measurement created" });
   } catch (err) {
     next(err);
   }
@@ -205,6 +234,7 @@ export async function getMeasurementsForSensor(
   next: NextFunction
 ): Promise<void> {
   const { networkCode, gatewayMac, sensorMac } = req.params;
+
   const startDate =
     typeof req.query.startDate === "string"
       ? normalizeDateParam(req.query.startDate)
@@ -223,23 +253,36 @@ export async function getMeasurementsForSensor(
       startDate,
       endDate
     );
+
+
+    const stats = result.stats
+      ? {
+          startDate: formatWithOffset(new Date(result.stats.startDate)),
+          endDate: formatWithOffset(new Date(result.stats.endDate)),
+          mean: result.stats.mean,
+          variance: result.stats.variance,
+          upperThreshold: result.stats.upperThreshold,
+          lowerThreshold: result.stats.lowerThreshold,
+        }
+      : {
+          startDate,
+          endDate,
+          mean: null,
+          variance: null,
+          upperThreshold: null,
+          lowerThreshold: null,
+        };
+
+    const measurements = result.measurements.map((m) => ({
+      createdAt: formatWithOffset(new Date(m.createdAt)),
+      value: m.value,
+      isOutlier: m.isOutlier,
+    }));
+
     res.status(200).json({
       sensorMacAddress: result.sensorMacAddress,
-      stats: result.stats
-        ? {
-            startDate: formatWithOffset(new Date(result.stats.startDate)),
-            endDate: formatWithOffset(new Date(result.stats.endDate)),
-            mean: result.stats.mean,
-            variance: result.stats.variance,
-            upperThreshold: result.stats.upperThreshold,
-            lowerThreshold: result.stats.lowerThreshold,
-          }
-        : undefined,
-      measurements: result.measurements.map((m) => ({
-        createdAt: formatWithOffset(new Date(m.createdAt)),
-        value: m.value,
-        isOutlier: m.isOutlier,
-      })),
+      stats,
+      measurements,
     });
   } catch (err) {
     next(err);
@@ -262,6 +305,8 @@ export async function getStatisticsForSensor(
       ? normalizeDateParam(req.query.endDate)
       : new Date().toISOString();
 
+
+
   try {
     const result = await getStatisticsForSingleSensor(
       networkCode,
@@ -270,15 +315,17 @@ export async function getStatisticsForSensor(
       startDate,
       endDate
     );
-    res.status(200).json({
-      sensorMacAddress: result.sensorMac,
-      startDate: formatWithOffset(new Date(result.stats.startDate)),
-      endDate: formatWithOffset(new Date(result.stats.endDate)),
-      mean: result.stats.mean,
-      variance: result.stats.variance,
-      upperThreshold: result.stats.upperThreshold,
-      lowerThreshold: result.stats.lowerThreshold,
-    });
+
+    res.status(200).json(
+       {
+        startDate: formatWithOffset(new Date(result.stats.startDate)),
+        endDate: formatWithOffset(new Date(result.stats.endDate)),
+        mean: result.stats.mean,
+        variance: result.stats.variance,
+        upperThreshold: result.stats.upperThreshold,
+        lowerThreshold: result.stats.lowerThreshold,
+      },
+    );
   } catch (err) {
     next(err);
   }
@@ -308,8 +355,28 @@ export async function getOutliersForSensor(
       startDate,
       endDate
     );
+
+    const stats = result.stats
+      ? {
+          startDate: formatWithOffset(new Date(result.stats.startDate)),
+          endDate: formatWithOffset(new Date(result.stats.endDate)),
+          mean: result.stats.mean,
+          variance: result.stats.variance,
+          upperThreshold: result.stats.upperThreshold,
+          lowerThreshold: result.stats.lowerThreshold,
+        }
+      : {
+          startDate,
+          endDate,
+          mean: null,
+          variance: null,
+          upperThreshold: null,
+          lowerThreshold: null,
+        };
+
     res.status(200).json({
       sensorMacAddress: result.sensorMacAddress,
+      stats,
       measurements: result.measurements.map((m) => ({
         createdAt: formatWithOffset(new Date(m.createdAt)),
         value: m.value,

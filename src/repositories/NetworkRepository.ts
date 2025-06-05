@@ -8,6 +8,8 @@ import { SensorDAO } from "@models/dao/SensorDAO";
 import { Network as NetworkDTO } from "@dto/Network";
 import { ConflictError } from "@models/errors/ConflictError";
 import { NotFoundError } from "@models/errors/NotFoundError";
+import { SensorRepository } from "./SensorRepository";
+import { GatewayRepository } from "./GatewayRepository";
 
 export class NetworkRepository {
   private repo: Repository<NetworkDAO>;
@@ -108,6 +110,9 @@ export class NetworkRepository {
 
   async deleteNetwork(code: string): Promise<void> {
     const network = await this.getNetworkByCode(code);
+    if (!network) {
+      throw new NotFoundError(`Network with code '${code}' not found`);
+    }
     await this.repo.remove(network);
   }
 }
