@@ -88,8 +88,13 @@ describe("Sensors E2E", () => {
     });
   });
 
-  it("should update the sensor", async () => {
-    const update = { name: "TempSensorV2", description: "Updated desc" };
+ it("should update the sensor", async () => {
+    const update = {
+      macAddress:  sensorMac, // ✅ Required
+      name:        "TempSensorV2",
+      description: "Updated desc"
+    };
+
     const res = await request(app)
       .put(
         `/api/v1/networks/${networkCode}/gateways/${gatewayMac}/sensors/${sensorMac}`
@@ -97,13 +102,24 @@ describe("Sensors E2E", () => {
       .set("Authorization", `Bearer ${token}`)
       .send(update);
 
-    expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({
+    // ✅ Expecting 204 No Content as per controller
+    expect(res.status).toBe(204);
+
+    // ✅ Follow-up: verify it was actually updated via GET
+    const check = await request(app)
+      .get(
+        `/api/v1/networks/${networkCode}/gateways/${gatewayMac}/sensors/${sensorMac}`
+      )
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(check.status).toBe(200);
+    expect(check.body).toMatchObject({
       macAddress:  sensorMac,
       name:        "TempSensorV2",
-      description: "Updated desc",
+      description: "Updated desc"
     });
   });
+
 
   it("should delete the sensor", async () => {
     await request(app)
