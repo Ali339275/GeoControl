@@ -331,12 +331,14 @@ export async function getStatisticsForSensor(
   }
 }
 
+
 export async function getOutliersForSensor(
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> {
   const { networkCode, gatewayMac, sensorMac } = req.params;
+
   const startDate =
     typeof req.query.startDate === "string"
       ? normalizeDateParam(req.query.startDate)
@@ -355,6 +357,11 @@ export async function getOutliersForSensor(
       startDate,
       endDate
     );
+
+    if (!result) {
+      res.status(404).json({ message: "No outliers found" });
+      return;
+    }
 
     const stats = result.stats
       ? {
