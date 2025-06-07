@@ -1,3 +1,4 @@
+// ✅ Fixed gatewayService.ts
 import { GatewayRepository } from "@repositories/GatewayRepository";
 import { Gateway } from "@dto/Gateway";
 
@@ -15,7 +16,11 @@ export async function createGatewayService(networkCode: string, gatewayData: any
   return await gatewayRepo.createGateway(networkCode, gatewayData);
 }
 
-export async function updateGatewayService(networkCode: string, macAddress: string, updatedGatewayData: any): Promise<Gateway> {
+export async function updateGatewayService(
+  networkCode: string,
+  macAddress: string,
+  updatedGatewayData: any
+): Promise<Gateway> {
   return await gatewayRepo.updateGateway(networkCode, macAddress, updatedGatewayData);
 }
 

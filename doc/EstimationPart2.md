@@ -1,44 +1,75 @@
-# Project Estimation part 2
-
-
+# Project Estimation Part 2
 
 Goal of this document is to compare actual effort and size of the project, vs the estimates made in task1.
 
-## Computation of size
+---
 
-To compute the lines of code use cloc    
-To install cloc:  
-           `npm install -g cloc`   
-On Windows, also a perl interpreter needs to be installed. You find it here https://strawberryperl.com/  
-To run cloc  
-           `cloc <directory containing ts files> --include-lang=TypeScript`  
-As a result of cloc collect the *code* value (rightmost column of the result table)  
-        
-
-Compute two separate values of size  
--LOC of production code     `cloc <Geocontrol\src> --include-lang=TypeScript`  
--LOC of test code      `cloc <GeoControl\test> --include-lang=TypeScript`  
+## Computation of Size
 
 
-## Computation of effort 
-From timesheet.md sum all effort spent, in **ALL** activities (task1, task2, task3) at the end of the project on June 7. Exclude task4
+### Production Code (`src`)
 
+| Language    | Files | Blank | Comment | Code |
+|-------------|-------|--------|----------|------|
+| TypeScript  | 53    | 417    | 430      | 2875 |
+| **Total**   | 53    | 417    | 430      | **2875** |
+
+**→ Production LOC = 2875**
+
+---
+
+### Test Code (`test`)
+
+| Language    | Files | Blank | Comment | Code |
+|-------------|-------|--------|----------|------|
+| TypeScript  | 37    | 1607   | 39       | 7223 |
+| **Total**   | 37    | 1607   | 39       | **7223** |
+
+**→ Test LOC = 7223**
+
+---
+
+## Computation of Effort
+
+From the `timesheet.md`, we sum all effort (excluding containerization) across all weeks:
+
+**Total effort = 188 person-hours**
+
+---
 ## Computation of productivity
 
-productivity = ((LOC of production code)+ (LOC of test code)) / effort
+- Productivity = (2875 + 7223) / 188 = 53.7 LOC/person-hour
 
 
-## Comparison
+---
 
-|                                        | Estimated (end of task 1) | Actual (june 7, end of task 3)|
-| -------------------------------------------------------------------------------- | -------- |----|
-| production code size | unknown  ||
-| test code size | unknown ||
-| total size  |||
-| effort |||
-| productivity  | 10 loc / hour ||
+## Comparison Table
+
+| Metric                  | Estimated (Task 1) | Actual (June 7)       |
+|-------------------------|--------------------|------------------------|
+| Production Code Size    | unknown          | 2875 LOC               |
+| Test Code Size          | unknown           | 7223 LOC               |
+| **Total Code Size**     | 1100 LOC           | **10098 LOC**          |
+| Effort                  | 125 hours          | **188 hours**          |
+| Productivity            | 10 LOC/hour        | **≈ 53.7 LOC/hour**    |
+
+---
 
 
-Report, as estimate of effort, the value obtained via activity decomposition technique.
+
+## Estimated Effort via Activity Decomposition Technique:
+
+| **Activity Name**        | **Estimated Effort (hours)** |
+|--------------------------|------------------------------|
+| Requirements Analysis    | 25                           |
+| System Design            | 15                           |
+| Frontend Development     | 15                           |
+| Backend Development      | 25                           |
+| Sensor Integration       | 10                           |
+| Database Setup           | 10                           |
+| Testing (Unit + API)     | 15                           |
+| Documentation & Review   | 10                           |
+| **Total**                | **125**                      |
+
 
 

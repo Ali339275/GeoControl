@@ -6,6 +6,10 @@ import { Gateway } from "@models/dto/Gateway";
 import { GatewayDAO } from "@models/dao/GatewayDAO";
 import { SensorDAO } from "@models/dao/SensorDAO";
 import { Network as NetworkDTO } from "@dto/Network";
+import { ConflictError } from "@models/errors/ConflictError";
+import { NotFoundError } from "@models/errors/NotFoundError";
+import { SensorRepository } from "./SensorRepository";
+import { GatewayRepository } from "./GatewayRepository";
 
 export class NetworkRepository {
   private repo: Repository<NetworkDAO>;
@@ -53,6 +57,20 @@ export class NetworkRepository {
       throw new Error("All fields (code, name, and description) must be provided.");
     }
 
+    if (updatedNetwork.code !== oldCode) {
+      try {
+        // see if a network with the *new* code already exists
+        await this.getNetworkByCode(updatedNetwork.code);
+        // if we get here, that code is in use → conflict
+        throw new ConflictError(`Network with code '${updatedNetwork.code}' already exists`);
+      } catch (err) {
+        // If getNetworkByCode threw NotFoundError, that means “dto.code” is unused → safe to proceed.
+        if (!(err instanceof NotFoundError)) {
+          throw err; // propagate any other error
+        }
+      }
+    }
+
     const existingNetwork = await this.getNetworkByCode(oldCode);
 
     const newNetwork = new NetworkDAO();
@@ -92,6 +110,9 @@ export class NetworkRepository {
 
   async deleteNetwork(code: string): Promise<void> {
     const network = await this.getNetworkByCode(code);
+    if (!network) {
+      throw new NotFoundError(`Network with code '${code}' not found`);
+    }
     await this.repo.remove(network);
   }
 }

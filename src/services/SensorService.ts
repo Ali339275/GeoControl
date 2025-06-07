@@ -30,7 +30,7 @@ export async function createSensorService(
   dao.description = sensorDto.description;
   dao.variable    = sensorDto.variable;
   dao.unit        = sensorDto.unit;
-  // Removed dao.gatewayId assignment as it doesn't exist on SensorDAO
+ 
   
   return sensorRepo.createSensor(networkCode, gatewayMac, dao);
 }

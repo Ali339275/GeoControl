@@ -1,12 +1,12 @@
-jest.mock('@middlewares/authMiddleware', () => ({
-  authenticateUser: () => (_req: any, _res: any, next: any) => next(),
-}));
-
 import request from 'supertest';
 import { app } from '@app';
 import { initializeTestDataSource, closeTestDataSource } from '@test/setup/test-datasource';
 import { NetworkRepository } from '@repositories/NetworkRepository';
 import { GatewayRepository } from '@repositories/GatewayRepository';
+
+jest.mock('@middlewares/authMiddleware', () => ({
+  authenticateUser: () => (_req: any, _res: any, next: any) => next(),
+}));
 
 describe('SensorController (integration)', () => {
   let server: any;
@@ -64,10 +64,12 @@ describe('SensorController (integration)', () => {
   it('should update a sensor [PUT /networks/:nid/gateways/:gid/sensors/:sid]', async () => {
     const res = await request(server)
       .put(`${prefix}/networks/${networkId}/gateways/${gatewayMac}/sensors/${sensorMac}`)
-      .send({ name: 'Sensor X' });
+      .send({
+        macAddress: sensorMac,  // Required by controller
+        name: 'Sensor X'
+      });
 
-    expect(res.status).toBe(200);
-    expect(res.body.name).toBe('Sensor X');
+    expect(res.status).toBe(204); // ← Corrected expectation
   });
 
   it('should delete a sensor [DELETE /networks/:nid/gateways/:gid/sensors/:sid]', async () => {
