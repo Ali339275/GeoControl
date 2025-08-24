@@ -10,10 +10,10 @@ These figures will not be used to evaluate neither the project nor the team, the
 
 |      Week      | requirement engineering | design | coding | unit testing | integration testing | acceptance testing | containerization | management |
 | :------------: | :---------------------: | :----: | :----: | :----------: | :-----------------: | :----------------: | :--------------: | :--------: |
-|  Mar 24 - 30   |                         |        |        |              |                     |                    |                  |            |
-| Mar 31 - Apr 6 |                         |        |        |              |                     |                    |                  |            |
-|   Apr 7 - 13   |                         |        |        |              |                     |                    |                  |            |
-|  Apr 14 - 20   |                         |        |        |              |                     |                    |                  |            |
+|  Mar 24 - 30   |            6           |    0   |    0   |       0      |          0          |          0         |         0        |     2      |
+| Mar 31 - Apr 6 |           10           |    0   |    0   |       0      |          0          |          0         |         0        |     3      |
+|   Apr 7 - 13   |           15           |    0   |    0   |       0      |          0          |          0         |         0        |     4      |
+|  Apr 14 - 19   |            8           |    0   |    0   |       0      |          0          |          0         |         0        |     2      |
 |  Apr 21 - 27   |                         |        |        |              |                     |                    |                  |            |
 | Apr 28 - May 4 |                         |        |        |              |                     |                    |                  |            |
 |   May 5 - 11   |                         |        |        |              |                     |                    |                  |            |
