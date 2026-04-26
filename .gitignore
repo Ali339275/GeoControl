@@ -6,4 +6,4 @@ data
 database.sqlite
 openapitools.json
 logs
-coverage
+coverage.DS_Store
